@@ -637,6 +637,11 @@ def create_app(test_config=None):
 
         return jsonify({"success": False, "message": "Unknown action type"}), 400
 
+    @app.route("/api/index")
+    def api_index_handler():
+        """Handle root request if Vercel passes /api/index path directly."""
+        return render_template("index.html")
+
     # =========================================================================
     # ERROR HANDLERS
     # =========================================================================
@@ -648,6 +653,34 @@ def create_app(test_config=None):
     def internal_error(e):
         logger.exception("Internal Server Error")
         return render_template("500.html"), 500
+
+    class VercelPathMiddleware:
+        """WSGI Middleware to fix PATH_INFO when deployed behind Vercel serverless rewrites."""
+        def __init__(self, wsgi_app):
+            self.wsgi_app = wsgi_app
+
+        def __call__(self, environ, start_response):
+            path_info = environ.get("PATH_INFO", "")
+            orig_path = (
+                environ.get("HTTP_X_FORWARDED_URI")
+                or environ.get("HTTP_X_MATCHED_PATH")
+                or environ.get("HTTP_X_NOW_ROUTE_MATCHES")
+                or environ.get("HTTP_X_REAL_PATH")
+                or environ.get("RAW_URI")
+                or environ.get("REQUEST_URI")
+            )
+            if orig_path:
+                clean_path = orig_path.split("?")[0]
+                if clean_path and clean_path not in ("/api/index", "/api/index.py"):
+                    environ["PATH_INFO"] = clean_path
+                elif path_info in ("/api/index", "/api/index.py", "/api"):
+                    environ["PATH_INFO"] = "/"
+            elif path_info in ("/api/index", "/api/index.py", "/api"):
+                environ["PATH_INFO"] = "/"
+
+            return self.wsgi_app(environ, start_response)
+
+    app.wsgi_app = VercelPathMiddleware(app.wsgi_app)
 
     return app
 

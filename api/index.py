@@ -1,7 +1,7 @@
 import sys
 import os
 
-# Add parent directory to sys.path so modules (config, models, services, app) can be imported
+# Add parent directory to sys.path so modules can be imported
 current_dir = os.path.dirname(os.path.abspath(__file__))
 parent_dir = os.path.dirname(current_dir)
 if parent_dir not in sys.path:
