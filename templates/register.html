@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block title %}Create Account — CelebrationAI{% endblock %}
+
+{% block content %}
+<div class="container container-narrow" style="padding: 4rem 1.5rem 6rem; max-width: 480px;">
+    <div class="card" style="padding: 2.5rem;">
+        <div style="text-align:center; margin-bottom: 2rem;">
+            <div class="brand-icon" style="margin:0 auto 1rem; width:48px; height:48px;">
+                <i data-lucide="sparkles"></i>
+            </div>
+            <h2 style="font-size:2rem; margin-bottom:0.4rem;">Join CelebrationAI</h2>
+            <p style="font-size:0.9rem;">Create your personal event planner workspace.</p>
+        </div>
+
+        <form action="{{ url_for('register') }}" method="POST">
+            <div class="form-group">
+                <label class="form-label" for="reg_name">Full Name</label>
+                <input type="text" class="form-control" id="reg_name" name="name" placeholder="e.g. Alex Morgan" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="reg_email">Email Address</label>
+                <input type="email" class="form-control" id="reg_email" name="email" placeholder="name@example.com" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="reg_password">Password</label>
+                <input type="password" class="form-control" id="reg_password" name="password" placeholder="At least 6 characters" minlength="6" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="reg_confirm">Confirm Password</label>
+                <input type="password" class="form-control" id="reg_confirm" name="confirm_password" placeholder="Re-enter password" minlength="6" required>
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="width:100%; margin-top:0.5rem; padding:0.85rem;">
+                <i data-lucide="user-plus"></i>
+                <span>Create Account</span>
+            </button>
+        </form>
+
+        <div style="text-align:center; margin-top:1.5rem; font-size:0.875rem;">
+            <span style="color:var(--color-text-muted);">Already have an account?</span>
+            <a href="{{ url_for('login') }}" style="font-weight:600; margin-left:0.35rem;">Sign In</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

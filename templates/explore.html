@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+
+{% block title %}Explore Celebration Themes & Aesthetics — CelebrationAI{% endblock %}
+
+{% block content %}
+<div class="container" style="padding: 3.5rem 1.5rem 5rem;">
+    <div class="section-header" style="margin-bottom: 3rem;">
+        <span class="section-tag">Inspiration Gallery</span>
+        <h1 class="section-title">Celebration Themes & Aesthetic Palettes</h1>
+        <p>Curated color harmonies, decor concepts, and catering profiles designed to spark ideas for your next milestone.</p>
+    </div>
+
+    <div class="inspiration-grid">
+        <!-- Theme 1 -->
+        <div class="inspiration-card">
+            <div class="inspiration-img" style="background-image: url('https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=800&q=80');">
+                <div class="inspiration-palette-pill">
+                    <span class="palette-dot" style="background:#4A1525;" title="#4A1525 Deep Plum"></span>
+                    <span class="palette-dot" style="background:#C5A059;" title="#C5A059 Muted Gold"></span>
+                    <span class="palette-dot" style="background:#FAF8F5;" title="#FAF8F5 Ivory"></span>
+                    <span class="palette-dot" style="background:#8E2848;" title="#8E2848 Blush"></span>
+                </div>
+            </div>
+            <div class="inspiration-body">
+                <span class="badge badge-plum" style="align-self:flex-start; margin-bottom:0.75rem;">Wedding & Reception</span>
+                <h3 class="inspiration-title">Minimalist Pastel Splendor</h3>
+                <p style="font-size:0.9rem; margin-bottom:0.75rem;">Ivory fabric canopies, muted gold geometric floral arches, white hydrangeas, and soft fairy lighting.</p>
+                <div style="background:var(--color-surface-soft); padding:0.75rem; border-radius:var(--radius-sm); margin-bottom:1rem; font-size:0.825rem;">
+                    <strong>Recommended Food Style:</strong> Gourmet plated or modern buffet with live pasta/chaat counters.
+                </div>
+                <div class="inspiration-footer">
+                    <span style="font-size:0.85rem; font-weight:600; color:var(--color-plum-800);">Est. ₹3.5L - ₹12L</span>
+                    <a href="{{ url_for('create_event', type='Wedding', theme='Minimalist Pastel Splendor', budget=450000) }}" class="btn btn-sm btn-primary">Plan with Theme</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Theme 2 -->
+        <div class="inspiration-card">
+            <div class="inspiration-img" style="background-image: url('https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?auto=format&fit=crop&w=800&q=80');">
+                <div class="inspiration-palette-pill">
+                    <span class="palette-dot" style="background:#5E1931;"></span>
+                    <span class="palette-dot" style="background:#E6CA65;"></span>
+                    <span class="palette-dot" style="background:#3A5A40;"></span>
+                    <span class="palette-dot" style="background:#DDA15E;"></span>
+                </div>
+            </div>
+            <div class="inspiration-body">
+                <span class="badge badge-gold" style="align-self:flex-start; margin-bottom:0.75rem;">Birthday & Milestones</span>
+                <h3 class="inspiration-title">Garden Twilight Soirée</h3>
+                <p style="font-size:0.9rem; margin-bottom:0.75rem;">Warm festoon lighting, green foliage photo-wall, artisanal mocktail bar, and outdoor wooden table setup.</p>
+                <div style="background:var(--color-surface-soft); padding:0.75rem; border-radius:var(--radius-sm); margin-bottom:1rem; font-size:0.825rem;">
+                    <strong>Recommended Food Style:</strong> Gourmet finger food, mini sliders, and live wood-fired pizza stall.
+                </div>
+                <div class="inspiration-footer">
+                    <span style="font-size:0.85rem; font-weight:600; color:var(--color-plum-800);">Est. ₹35k - ₹1.2L</span>
+                    <a href="{{ url_for('create_event', type='Birthday', theme='Garden Twilight Soirée', budget=55000) }}" class="btn btn-sm btn-primary">Plan with Theme</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Theme 3 -->
+        <div class="inspiration-card">
+            <div class="inspiration-img" style="background-image: url('https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=800&q=80');">
+                <div class="inspiration-palette-pill">
+                    <span class="palette-dot" style="background:#330A17;"></span>
+                    <span class="palette-dot" style="background:#D4AF37;"></span>
+                    <span class="palette-dot" style="background:#F5ECD9;"></span>
+                    <span class="palette-dot" style="background:#C0C0C0;"></span>
+                </div>
+            </div>
+            <div class="inspiration-body">
+                <span class="badge badge-plum" style="align-self:flex-start; margin-bottom:0.75rem;">Anniversary & Gala</span>
+                <h3 class="inspiration-title">Candlelit Silver Symphony</h3>
+                <p style="font-size:0.9rem; margin-bottom:0.75rem;">Taper candles in vintage glass, white orchid arrangements, mirrored table runners, and personalized memories gallery.</p>
+                <div style="background:var(--color-surface-soft); padding:0.75rem; border-radius:var(--radius-sm); margin-bottom:1rem; font-size:0.825rem;">
+                    <strong>Recommended Food Style:</strong> 4-course seated tasting menu with pairing mocktails and warm desserts.
+                </div>
+                <div class="inspiration-footer">
+                    <span style="font-size:0.85rem; font-weight:600; color:var(--color-plum-800);">Est. ₹60k - ₹2.5L</span>
+                    <a href="{{ url_for('create_event', type='Anniversary', theme='Candlelit Silver Symphony', budget=80000) }}" class="btn btn-sm btn-primary">Plan with Theme</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Theme 4 -->
+        <div class="inspiration-card">
+            <div class="inspiration-img" style="background-image: url('https://images.unsplash.com/photo-1545232979-8bf68ee9b1af?auto=format&fit=crop&w=800&q=80');">
+                <div class="inspiration-palette-pill">
+                    <span class="palette-dot" style="background:#6B1D36;"></span>
+                    <span class="palette-dot" style="background:#C5A059;"></span>
+                    <span class="palette-dot" style="background:#E76F51;"></span>
+                    <span class="palette-dot" style="background:#2B4C3F;"></span>
+                </div>
+            </div>
+            <div class="inspiration-body">
+                <span class="badge badge-gold" style="align-self:flex-start; margin-bottom:0.75rem;">Cultural & Heritage</span>
+                <h3 class="inspiration-title">Royal Marigold & Brass Heritage</h3>
+                <p style="font-size:0.9rem; margin-bottom:0.75rem;">Fresh orange and yellow marigold cascades, brass urulis with floating diyas, sitar/shehnai melodies, and silk drapes.</p>
+                <div style="background:var(--color-surface-soft); padding:0.75rem; border-radius:var(--radius-sm); margin-bottom:1rem; font-size:0.825rem;">
+                    <strong>Recommended Food Style:</strong> Traditional regional feast served with rich sweets and live jalebi counter.
+                </div>
+                <div class="inspiration-footer">
+                    <span style="font-size:0.85rem; font-weight:600; color:var(--color-plum-800);">Est. ₹2L - ₹8L</span>
+                    <a href="{{ url_for('create_event', type='Cultural Celebration', theme='Royal Marigold & Brass Heritage', budget=300000) }}" class="btn btn-sm btn-primary">Plan with Theme</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Theme 5 -->
+        <div class="inspiration-card">
+            <div class="inspiration-img" style="background-image: url('https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=800&q=80');">
+                <div class="inspiration-palette-pill">
+                    <span class="palette-dot" style="background:#721D3B;"></span>
+                    <span class="palette-dot" style="background:#FF6B6B;"></span>
+                    <span class="palette-dot" style="background:#4ECDC4;"></span>
+                    <span class="palette-dot" style="background:#FFE66D;"></span>
+                </div>
+            </div>
+            <div class="inspiration-body">
+                <span class="badge badge-neutral" style="align-self:flex-start; margin-bottom:0.75rem;">College & Youth</span>
+                <h3 class="inspiration-title">Neon Pulse Campus Carnival</h3>
+                <p style="font-size:0.9rem; margin-bottom:0.75rem;">UV light displays, interactive digital graffiti walls, student acoustic stages, and street food pavilions.</p>
+                <div style="background:var(--color-surface-soft); padding:0.75rem; border-radius:var(--radius-sm); margin-bottom:1rem; font-size:0.825rem;">
+                    <strong>Recommended Food Style:</strong> Quick bites, rolls, momos, iced teas, and ice cream trucks.
+                </div>
+                <div class="inspiration-footer">
+                    <span style="font-size:0.85rem; font-weight:600; color:var(--color-plum-800);">Est. ₹1.5L - ₹6L</span>
+                    <a href="{{ url_for('create_event', type='College Festival', theme='Neon Pulse Campus Carnival', budget=200000) }}" class="btn btn-sm btn-primary">Plan with Theme</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Theme 6 -->
+        <div class="inspiration-card">
+            <div class="inspiration-img" style="background-image: url('https://images.unsplash.com/photo-1528605248644-14dd04022da1?auto=format&fit=crop&w=800&q=80');">
+                <div class="inspiration-palette-pill">
+                    <span class="palette-dot" style="background:#4A1525;"></span>
+                    <span class="palette-dot" style="background:#52796F;"></span>
+                    <span class="palette-dot" style="background:#C5A059;"></span>
+                    <span class="palette-dot" style="background:#FAF8F5;"></span>
+                </div>
+            </div>
+            <div class="inspiration-body">
+                <span class="badge badge-plum" style="align-self:flex-start; margin-bottom:0.75rem;">Community Gathering</span>
+                <h3 class="inspiration-title">Harvest Gathering & Community Gala</h3>
+                <p style="font-size:0.9rem; margin-bottom:0.75rem;">Eco-friendly bamboo tableware, community storytelling corners, local talent stage, and cheerful paper lanterns.</p>
+                <div style="background:var(--color-surface-soft); padding:0.75rem; border-radius:var(--radius-sm); margin-bottom:1rem; font-size:0.825rem;">
+                    <strong>Recommended Food Style:</strong> Community buffet featuring seasonal produce, regional bread, and beverages.
+                </div>
+                <div class="inspiration-footer">
+                    <span style="font-size:0.85rem; font-weight:600; color:var(--color-plum-800);">Est. ₹40k - ₹2L</span>
+                    <a href="{{ url_for('create_event', type='Community Gathering', theme='Harvest Gathering & Community Gala', budget=90000) }}" class="btn btn-sm btn-primary">Plan with Theme</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

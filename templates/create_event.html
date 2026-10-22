@@ -1,0 +1,397 @@
+{% extends "base.html" %}
+
+{% block title %}Create Event — CelebrationAI Multi-Step Planner{% endblock %}
+
+{% block content %}
+<div class="container wizard-container">
+    <div class="section-header" style="margin-bottom: 2.5rem;">
+        <span class="section-tag">Event Planner Wizard</span>
+        <h1 class="section-title">Design Your Celebration</h1>
+        <p>Follow our guided 5-step process to generate a bespoke event blueprint tailored to your vision and budget.</p>
+    </div>
+
+    <!-- Wizard Step Indicator -->
+    <div class="wizard-progress">
+        <div class="wizard-step-node active" data-step="1">
+            <div class="wizard-step-circle">1</div>
+            <span class="wizard-step-label">Basics</span>
+        </div>
+        <div class="wizard-step-node" data-step="2">
+            <div class="wizard-step-circle">2</div>
+            <span class="wizard-step-label">Budget</span>
+        </div>
+        <div class="wizard-step-node" data-step="3">
+            <div class="wizard-step-circle">3</div>
+            <span class="wizard-step-label">Preferences</span>
+        </div>
+        <div class="wizard-step-node" data-step="4">
+            <div class="wizard-step-circle">4</div>
+            <span class="wizard-step-label">Services</span>
+        </div>
+        <div class="wizard-step-node" data-step="5">
+            <div class="wizard-step-circle">5</div>
+            <span class="wizard-step-label">Review</span>
+        </div>
+    </div>
+
+    <!-- Wizard Card Form -->
+    <div class="wizard-card container-narrow" style="margin: 0 auto;">
+        <form id="wizard-event-form" onsubmit="return false;">
+
+            <!-- STEP 1: EVENT BASICS -->
+            <div class="wizard-step-pane active" data-step="1">
+                <div class="card-header">
+                    <div>
+                        <h3 style="font-size:1.6rem; color:var(--color-plum-800);">Step 1: Event Basics</h3>
+                        <p style="font-size:0.875rem;">Set the primary date, venue location, and expected attendance.</p>
+                    </div>
+                    <span class="badge badge-plum">1 of 5</span>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="event_title">Celebration Name <span style="color:var(--color-danger)">*</span></label>
+                    <input type="text" class="form-control" id="event_title" name="title" placeholder="e.g. Ananya & Rohit's Wedding, Maya's 30th Birthday" value="{{ prefill.theme or '' }}" required>
+                </div>
+
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1.25rem;">
+                    <div class="form-group">
+                        <label class="form-label" for="event_type">Celebration Type <span style="color:var(--color-danger)">*</span></label>
+                        <select class="form-select" id="event_type" name="event_type" required>
+                            <option value="Wedding" {% if prefill.event_type == 'Wedding' %}selected{% endif %}>Wedding & Reception</option>
+                            <option value="Birthday" {% if prefill.event_type == 'Birthday' %}selected{% endif %}>Birthday Party</option>
+                            <option value="Anniversary" {% if prefill.event_type == 'Anniversary' %}selected{% endif %}>Anniversary Celebration</option>
+                            <option value="Engagement" {% if prefill.event_type == 'Engagement' %}selected{% endif %}>Engagement Ceremony</option>
+                            <option value="College Festival" {% if prefill.event_type == 'College Festival' %}selected{% endif %}>College Festival / Culturals</option>
+                            <option value="Community Gathering" {% if prefill.event_type == 'Community Gathering' %}selected{% endif %}>Community Gathering / Gala</option>
+                            <option value="Baby Shower" {% if prefill.event_type == 'Baby Shower' %}selected{% endif %}>Baby Shower</option>
+                            <option value="Cultural Celebration" {% if prefill.event_type == 'Cultural Celebration' %}selected{% endif %}>Cultural / Festival Celebration</option>
+                            <option value="Other">Other Milestone Celebration</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="event_date">Event Date <span style="color:var(--color-danger)">*</span></label>
+                        <input type="date" class="form-control" id="event_date" name="event_date" value="{{ prefill.event_date }}" required>
+                    </div>
+                </div>
+
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1.25rem;">
+                    <div class="form-group">
+                        <label class="form-label" for="start_time">Start Time (Optional)</label>
+                        <input type="time" class="form-control" id="start_time" name="start_time" value="18:00">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="end_time">End Time (Optional)</label>
+                        <input type="time" class="form-control" id="end_time" name="end_time" value="23:00">
+                    </div>
+                </div>
+
+                <div style="display:grid; grid-template-columns: 1.4fr 1fr; gap:1.25rem;">
+                    <div class="form-group">
+                        <label class="form-label" for="event_location">Location / City <span style="color:var(--color-danger)">*</span></label>
+                        <input type="text" class="form-control" id="event_location" name="location" placeholder="e.g. The Taj West End, Bangalore" value="{{ prefill.location }}" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="guest_count">Expected Guests <span style="color:var(--color-danger)">*</span></label>
+                        <input type="number" class="form-control" id="guest_count" name="guest_count" min="1" max="10000" value="{{ prefill.guest_count }}" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Event Setting</label>
+                    <div style="display:flex; gap:1.5rem; margin-top:0.35rem;">
+                        <label style="display:inline-flex; align-items:center; gap:0.4rem; cursor:pointer;">
+                            <input type="radio" name="indoor_outdoor" value="Indoor" checked>
+                            <span>Indoor Banquet / Hall</span>
+                        </label>
+                        <label style="display:inline-flex; align-items:center; gap:0.4rem; cursor:pointer;">
+                            <input type="radio" name="indoor_outdoor" value="Outdoor">
+                            <span>Outdoor Lawn / Garden</span>
+                        </label>
+                        <label style="display:inline-flex; align-items:center; gap:0.4rem; cursor:pointer;">
+                            <input type="radio" name="indoor_outdoor" value="Hybrid">
+                            <span>Hybrid (Indoor + Outdoor Courtyard)</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- STEP 2: BUDGET & TIER -->
+            <div class="wizard-step-pane" data-step="2">
+                <div class="card-header">
+                    <div>
+                        <h3 style="font-size:1.6rem; color:var(--color-plum-800);">Step 2: Budget & Spending Tier</h3>
+                        <p style="font-size:0.875rem;">Set financial parameters to guide AI expense calculations and contingency reserves.</p>
+                    </div>
+                    <span class="badge badge-gold">2 of 5</span>
+                </div>
+
+                <div style="display:grid; grid-template-columns: 2fr 1fr; gap:1.25rem;">
+                    <div class="form-group">
+                        <label class="form-label" for="total_budget">Total Target Budget <span style="color:var(--color-danger)">*</span></label>
+                        <input type="number" class="form-control" id="total_budget" name="total_budget" min="1000" step="1000" value="{{ prefill.total_budget }}" required>
+                        <div class="form-hint">Our algorithms ensure that all generated expenses never exceed this ceiling.</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="currency">Currency</label>
+                        <select class="form-select" id="currency" name="currency">
+                            <option value="INR" selected>INR (₹)</option>
+                            <option value="USD">USD ($)</option>
+                            <option value="EUR">EUR (€)</option>
+                            <option value="GBP">GBP (£)</option>
+                            <option value="AED">AED (د.إ)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-top:1.5rem;">
+                    <label class="form-label">Celebration Tier & Style</label>
+                    <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:1rem; margin-top:0.5rem;">
+                        <label class="service-check-box" style="flex-direction:column; align-items:flex-start;">
+                            <div style="display:flex; align-items:center; gap:0.5rem; width:100%;">
+                                <input type="radio" name="budget_tier" value="budget">
+                                <strong style="font-size:0.95rem;">Budget-Friendly</strong>
+                            </div>
+                            <p style="font-size:0.8rem; color:var(--color-text-muted); margin-top:0.4rem;">
+                                Smart DIY decor, essential services, cost-effective catering, and 5% contingency.
+                            </p>
+                        </label>
+
+                        <label class="service-check-box checked" style="flex-direction:column; align-items:flex-start;">
+                            <div style="display:flex; align-items:center; gap:0.5rem; width:100%;">
+                                <input type="radio" name="budget_tier" value="balanced" checked>
+                                <strong style="font-size:0.95rem;">Balanced & Elegant</strong>
+                            </div>
+                            <p style="font-size:0.8rem; color:var(--color-text-muted); margin-top:0.4rem;">
+                                Professional vendors, tasteful decor, varied culinary stations, and 8% contingency.
+                            </p>
+                        </label>
+
+                        <label class="service-check-box" style="flex-direction:column; align-items:flex-start;">
+                            <div style="display:flex; align-items:center; gap:0.5rem; width:100%;">
+                                <input type="radio" name="budget_tier" value="premium">
+                                <strong style="font-size:0.95rem;">Luxury & Grand</strong>
+                            </div>
+                            <p style="font-size:0.8rem; color:var(--color-text-muted); margin-top:0.4rem;">
+                                Premium florals, cinematic video coverage, artisanal catering, and 10% contingency.
+                            </p>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- STEP 3: PREFERENCES & CULTURAL RESONANCE -->
+            <div class="wizard-step-pane" data-step="3">
+                <div class="card-header">
+                    <div>
+                        <h3 style="font-size:1.6rem; color:var(--color-plum-800);">Step 3: Styling & Preferences</h3>
+                        <p style="font-size:0.875rem;">Define culinary preferences, cultural traditions, and aesthetic style.</p>
+                    </div>
+                    <span class="badge badge-plum">3 of 5</span>
+                </div>
+
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1.25rem;">
+                    <div class="form-group">
+                        <label class="form-label" for="theme">Preferred Theme or Concept</label>
+                        <input type="text" class="form-control" id="theme" name="theme" placeholder="e.g. Royal Marigold, Minimalist Pastel, Boho Chic" value="{{ prefill.theme }}">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="color_palette">Color Palette Idea (Optional)</label>
+                        <input type="text" class="form-control" id="color_palette" name="color_palette" placeholder="e.g. Deep Plum, Gold, Ivory, Blush">
+                    </div>
+                </div>
+
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1.25rem;">
+                    <div class="form-group">
+                        <label class="form-label" for="food_preference">Food & Catering Preference</label>
+                        <select class="form-select" id="food_preference" name="food_preference">
+                            <option value="Pure Vegetarian">Pure Vegetarian (Separate Kitchen)</option>
+                            <option value="Jain Vegetarian">Jain Vegetarian (No root vegetables)</option>
+                            <option value="Mixed (Veg & Non-Veg)" selected>Mixed (Vegetarian & Non-Vegetarian)</option>
+                            <option value="Vegan & Plant-Based">Vegan & Plant-Based</option>
+                            <option value="Halal Certified">Halal Certified Options</option>
+                            <option value="Continental / Multi-Cuisine">Continental & Global Fusion</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="entertainment">Entertainment Preferences</label>
+                        <input type="text" class="form-control" id="entertainment" name="entertainment" placeholder="e.g. Live Sitar & Tabla, DJ, Acoustic Band, Emcee">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="traditions">Cultural Traditions or Customs (Optional)</label>
+                    <input type="text" class="form-control" id="traditions" name="traditions" placeholder="e.g. Traditional Mehendi & Sangeet, Muhurtham rituals, Toast speeches">
+                    <div class="form-hint">CelebrationAI never assumes cultural background; provide specifics if you'd like custom traditions integrated.</div>
+                </div>
+
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1.25rem;">
+                    <div class="form-group">
+                        <label class="form-label" for="accessibility">Accessibility Requirements</label>
+                        <input type="text" class="form-control" id="accessibility" name="accessibility" placeholder="e.g. Wheelchair ramp, elderly seating, quiet room">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="additional_notes">Special Instructions</label>
+                        <input type="text" class="form-control" id="additional_notes" name="additional_notes" placeholder="e.g. Eco-friendly no-single-use-plastic">
+                    </div>
+                </div>
+            </div>
+
+            <!-- STEP 4: SERVICES NEEDED -->
+            <div class="wizard-step-pane" data-step="4">
+                <div class="card-header">
+                    <div>
+                        <h3 style="font-size:1.6rem; color:var(--color-plum-800);">Step 4: Services Needed</h3>
+                        <p style="font-size:0.875rem;">Check all service categories you need budgeted and scheduled.</p>
+                    </div>
+                    <span class="badge badge-gold">4 of 5</span>
+                </div>
+
+                <div class="services-grid">
+                    <label class="service-check-box checked">
+                        <input type="checkbox" name="services" value="Venue" checked>
+                        <span class="service-check-label">Venue & Facilities</span>
+                    </label>
+
+                    <label class="service-check-box checked">
+                        <input type="checkbox" name="services" value="Catering" checked>
+                        <span class="service-check-label">Catering & Dining</span>
+                    </label>
+
+                    <label class="service-check-box checked">
+                        <input type="checkbox" name="services" value="Decoration" checked>
+                        <span class="service-check-label">Decoration & Florals</span>
+                    </label>
+
+                    <label class="service-check-box checked">
+                        <input type="checkbox" name="services" value="Photography" checked>
+                        <span class="service-check-label">Photography</span>
+                    </label>
+
+                    <label class="service-check-box">
+                        <input type="checkbox" name="services" value="Videography">
+                        <span class="service-check-label">Cinematic Videography</span>
+                    </label>
+
+                    <label class="service-check-box checked">
+                        <input type="checkbox" name="services" value="Music or DJ" checked>
+                        <span class="service-check-label">Music & Audio Setup</span>
+                    </label>
+
+                    <label class="service-check-box checked">
+                        <input type="checkbox" name="services" value="Invitations" checked>
+                        <span class="service-check-label">Invitations & Stationery</span>
+                    </label>
+
+                    <label class="service-check-box checked">
+                        <input type="checkbox" name="services" value="Cake and desserts" checked>
+                        <span class="service-check-label">Cake & Confectionery</span>
+                    </label>
+
+                    <label class="service-check-box">
+                        <input type="checkbox" name="services" value="Transportation">
+                        <span class="service-check-label">Guest Transportation</span>
+                    </label>
+
+                    <label class="service-check-box">
+                        <input type="checkbox" name="services" value="Accommodation">
+                        <span class="service-check-label">Guest Accommodation</span>
+                    </label>
+
+                    <label class="service-check-box checked">
+                        <input type="checkbox" name="services" value="Gifts and favors" checked>
+                        <span class="service-check-label">Gifts & Return Favors</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- STEP 5: REVIEW & GENERATE -->
+            <div class="wizard-step-pane" data-step="5">
+                <div class="card-header">
+                    <div>
+                        <h3 style="font-size:1.6rem; color:var(--color-plum-800);">Step 5: Review & Generate</h3>
+                        <p style="font-size:0.875rem;">Confirm celebration specifications before generating with AI.</p>
+                    </div>
+                    <span class="badge badge-success">5 of 5</span>
+                </div>
+
+                <div id="review-summary-content" style="margin-bottom:1.5rem;">
+                    <!-- Populated dynamically via JavaScript -->
+                </div>
+
+                {% if not has_gemini_key %}
+                <div style="background:var(--color-warning-bg); border-left:4px solid var(--color-warning); padding:1rem 1.25rem; border-radius:var(--radius-md); margin-bottom:1.5rem;">
+                    <div style="display:flex; align-items:center; gap:0.5rem; font-weight:600; color:var(--color-warning);">
+                        <i data-lucide="info" style="width:18px; height:18px;"></i>
+                        <span>Demo & Local Planning Mode Active</span>
+                    </div>
+                    <p style="font-size:0.85rem; color:var(--color-text-main); margin-top:0.35rem;">
+                        No <code>GEMINI_API_KEY</code> detected in <code>.env</code>. The plan will be generated using CelebrationAI's robust built-in heuristic engine. To enable real Google Gemini 2.5 Flash, add your API key to <code>.env</code>.
+                    </p>
+                </div>
+                {% else %}
+                <div style="background:var(--color-success-bg); border-left:4px solid var(--color-success); padding:0.85rem 1.25rem; border-radius:var(--radius-md); margin-bottom:1.5rem;">
+                    <div style="display:flex; align-items:center; gap:0.5rem; font-weight:600; color:var(--color-success); font-size:0.875rem;">
+                        <i data-lucide="sparkles" style="width:16px; height:16px;"></i>
+                        <span>Google Gemini AI Engine Connected (Production Mode)</span>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Wizard Navigation Actions -->
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-top:2.5rem; padding-top:1.5rem; border-top:1px solid var(--color-border);">
+                <button type="button" class="btn btn-outline" id="wizard-prev-btn" style="visibility:hidden;">
+                    <i data-lucide="arrow-left"></i>
+                    <span>Back</span>
+                </button>
+
+                <div style="display:flex; gap:0.75rem;">
+                    <button type="button" class="btn btn-primary" id="wizard-next-btn">
+                        <span>Next Step</span>
+                        <i data-lucide="arrow-right"></i>
+                    </button>
+
+                    <button type="button" class="btn btn-gold" id="wizard-generate-btn" style="display:none;">
+                        <i data-lucide="sparkles"></i>
+                        <span>Generate My Event Plan</span>
+                    </button>
+                </div>
+            </div>
+
+        </form>
+    </div>
+</div>
+
+<!-- Progressive AI Generation Overlay -->
+<div class="loading-overlay" id="loading-overlay">
+    <div class="loading-spinner"></div>
+    <h3 style="font-family:var(--font-heading); font-size:2rem; color:var(--color-plum-800); margin-bottom:0.75rem;">
+        Creating your personalized event plan...
+    </h3>
+    <p id="loading-status-text" style="font-size:1.05rem; color:var(--color-text-muted); max-width:480px;">
+        Analyzing guest headcount and budget distribution...
+    </p>
+    <div style="margin-top:1.5rem; display:inline-flex; align-items:center; gap:0.5rem; font-size:0.85rem; color:var(--color-gold-700); background:var(--color-gold-100); padding:0.5rem 1rem; border-radius:var(--radius-pill);">
+        <i data-lucide="shield-check" style="width:16px; height:16px;"></i>
+        <span>Verifying budget arithmetic & contingency</span>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/event-form.js') }}"></script>
+<script>
+    // Ensure date defaults to today or future
+    const dateInput = document.getElementById("event_date");
+    if (dateInput && !dateInput.value) {
+        const d = new Date();
+        d.setDate(d.getDate() + 45);
+        dateInput.value = d.toISOString().split("T")[0];
+    }
+</script>
+{% endblock %}

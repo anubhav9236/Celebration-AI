@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block title %}Sign In — CelebrationAI{% endblock %}
+
+{% block content %}
+<div class="container container-narrow" style="padding: 4rem 1.5rem 6rem; max-width: 480px;">
+    <div class="card" style="padding: 2.5rem;">
+        <div style="text-align:center; margin-bottom: 2rem;">
+            <div class="brand-icon" style="margin:0 auto 1rem; width:48px; height:48px;">
+                <i data-lucide="sparkles"></i>
+            </div>
+            <h2 style="font-size:2rem; margin-bottom:0.4rem;">Welcome Back</h2>
+            <p style="font-size:0.9rem;">Sign in to access your saved celebrations and plans.</p>
+        </div>
+
+        <form action="{{ url_for('login') }}" method="POST">
+            <div class="form-group">
+                <label class="form-label" for="login_email">Email Address</label>
+                <input type="email" class="form-control" id="login_email" name="email" placeholder="name@example.com" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="login_password">Password</label>
+                <input type="password" class="form-control" id="login_password" name="password" placeholder="••••••••" required>
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="width:100%; margin-top:0.5rem; padding:0.85rem;">
+                <i data-lucide="log-in"></i>
+                <span>Sign In</span>
+            </button>
+        </form>
+
+        <div style="display:flex; align-items:center; gap:1rem; margin:1.75rem 0;">
+            <div style="flex-grow:1; height:1px; background:var(--color-border);"></div>
+            <span style="font-size:0.8rem; color:var(--color-text-light); text-transform:uppercase;">Or Test Drive</span>
+            <div style="flex-grow:1; height:1px; background:var(--color-border);"></div>
+        </div>
+
+        <!-- One-Click Instant Demo Login -->
+        <form action="{{ url_for('demo_login') }}" method="POST">
+            <button type="submit" class="btn btn-gold" style="width:100%; padding:0.85rem;">
+                <i data-lucide="play-circle"></i>
+                <span>Instant Demo Login (Alex Morgan)</span>
+            </button>
+        </form>
+
+        <div style="text-align:center; margin-top:1.5rem; font-size:0.875rem;">
+            <span style="color:var(--color-text-muted);">Don't have an account yet?</span>
+            <a href="{{ url_for('register') }}" style="font-weight:600; margin-left:0.35rem;">Create Account</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

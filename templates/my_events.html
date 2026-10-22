@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+
+{% block title %}My Celebrations — CelebrationAI Workspace{% endblock %}
+
+{% block content %}
+<div class="container" style="padding: 3.5rem 1.5rem 6rem;">
+    <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:1.5rem; margin-bottom:2.5rem;">
+        <div>
+            <span class="section-tag">Workspace</span>
+            <h1 class="section-title" style="margin-bottom:0.25rem;">My Celebrations</h1>
+            <p>Track, manage, and coordinate your upcoming milestones and celebrations.</p>
+        </div>
+        <a href="{{ url_for('create_event') }}" class="btn btn-primary">
+            <i data-lucide="plus-circle"></i>
+            <span>Plan New Celebration</span>
+        </a>
+    </div>
+
+    {% if not events %}
+    <!-- Empty State -->
+    <div class="card" style="text-align:center; padding:5rem 2rem; max-width:640px; margin:2rem auto;">
+        <div style="width:72px; height:72px; background:var(--color-champagne-light); color:var(--color-plum-800); border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 1.5rem; border:1px solid var(--color-champagne);">
+            <i data-lucide="calendar-heart" style="width:36px; height:36px;"></i>
+        </div>
+        <h3 style="font-size:1.8rem; margin-bottom:0.75rem;">No Celebrations Planned Yet</h3>
+        <p style="margin-bottom:2rem; max-width:440px; margin-left:auto; margin-right:auto;">
+            Whether it's an intimate birthday dinner or a grand wedding, start your first event plan with personalized AI guidance in minutes.
+        </p>
+        <a href="{{ url_for('create_event') }}" class="btn btn-lg btn-primary">
+            <i data-lucide="sparkles"></i>
+            <span>Create Your First Event Plan</span>
+        </a>
+    </div>
+    {% else %}
+    <!-- Events Grid -->
+    <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap:1.75rem;">
+        {% for ev in events %}
+        <div class="card" style="display:flex; flex-direction:column; justify-content:space-between;">
+            <div>
+                <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:1rem; margin-bottom:1rem;">
+                    <div>
+                        <span class="badge badge-plum" style="margin-bottom:0.5rem;">{{ ev.event_type }}</span>
+                        <h3 style="font-size:1.45rem; line-height:1.2;">{{ ev.title }}</h3>
+                    </div>
+
+                    {% if ev.days_left is not none %}
+                        {% if ev.days_left > 0 %}
+                            <div class="countdown-box" style="padding:0.4rem 0.8rem; background:var(--color-plum-100); border-color:var(--color-plum-600);">
+                                <div style="font-family:var(--font-heading); font-size:1.2rem; font-weight:700; color:var(--color-plum-800); line-height:1;">
+                                    {{ ev.days_left }}
+                                </div>
+                                <div style="font-size:0.65rem; color:var(--color-plum-800); text-transform:uppercase;">Days to go</div>
+                            </div>
+                        {% elif ev.days_left == 0 %}
+                            <span class="badge badge-success">Today! 🎉</span>
+                        {% else %}
+                            <span class="badge badge-neutral">Concluded</span>
+                        {% endif %}
+                    {% endif %}
+                </div>
+
+                <div style="display:flex; flex-direction:column; gap:0.35rem; font-size:0.875rem; color:var(--color-text-muted); margin-bottom:1.25rem;">
+                    <div style="display:flex; align-items:center; gap:0.5rem;">
+                        <i data-lucide="calendar" style="width:15px; height:15px; color:var(--color-gold-600);"></i>
+                        <span>{{ ev.event_date }}</span>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:0.5rem;">
+                        <i data-lucide="map-pin" style="width:15px; height:15px; color:var(--color-gold-600);"></i>
+                        <span>{{ ev.location }} ({{ ev.indoor_outdoor }})</span>
+                    </div>
+                </div>
+
+                <!-- Budget & Metrics Progress -->
+                <div style="background:var(--color-surface-soft); padding:1rem; border-radius:var(--radius-md); margin-bottom:1.5rem;">
+                    {% set ev_tb = (ev.total_budget or 0)|float %}
+                    {% set ev_act = (ev.actual_spent or 0)|float %}
+                    <div style="display:flex; justify-content:space-between; font-size:0.825rem; margin-bottom:0.35rem;">
+                        <span>Target Budget: <strong>₹{{ "{:,.0f}".format(ev_tb) }}</strong></span>
+                        <span>Actual Spent: <strong>₹{{ "{:,.0f}".format(ev_act) }}</strong></span>
+                    </div>
+
+                    {% set spend_pct = (ev_act / ev_tb * 100) if ev_tb > 0 else 0 %}
+                    <div class="progress-bar-wrap" style="margin:0.4rem 0;">
+                        <div class="progress-bar-fill" style="width: {{ [spend_pct, 100]|min }}%;"></div>
+                    </div>
+
+                    <div style="display:flex; justify-content:space-between; font-size:0.775rem; color:var(--color-text-light);">
+                        <span>Tasks: {{ ev.completed_tasks or 0 }}/{{ ev.total_tasks or 0 }} done</span>
+                        <span>Guests: {{ ev.confirmed_guests or 0 }}/{{ ev.total_guests or 0 }} confirmed</span>
+                    </div>
+                </div>
+            </div>
+
+            <div style="display:flex; align-items:center; justify-content:space-between; gap:0.75rem; padding-top:1rem; border-top:1px solid var(--color-surface-soft);">
+                <form action="{{ url_for('delete_event', event_id=ev.id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this celebration plan?');">
+                    <button type="submit" class="btn btn-sm btn-outline" style="color:var(--color-danger); border-color:transparent;" title="Delete Event">
+                        <i data-lucide="trash-2"></i>
+                    </button>
+                </form>
+
+                <a href="{{ url_for('event_dashboard', event_id=ev.id) }}" class="btn btn-sm btn-primary" style="flex-grow:1;">
+                    <span>Open Dashboard</span>
+                    <i data-lucide="arrow-right"></i>
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

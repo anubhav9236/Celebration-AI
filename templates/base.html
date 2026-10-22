@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}CelebrationAI — Smart Celebration & Event Planner{% endblock %}</title>
+    <meta name="description" content="{% block meta_desc %}Plan weddings, birthdays, anniversaries, college festivals, and family celebrations with personalized AI ideas, budget tracking, and timelines.{% endblock %}">
+
+    <!-- Google Fonts: Cormorant Garamond, Cinzel & Plus Jakarta Sans -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,400;1,600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Lucide Icons CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+    <!-- Custom Stylesheet -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+    <!-- Header & Navigation -->
+    <header class="site-header">
+        <div class="container">
+            <nav class="navbar" aria-label="Main Navigation">
+                <a href="{{ url_for('index') }}" class="brand-logo" aria-label="CelebrationAI Home">
+                    <div class="brand-icon">
+                        <i data-lucide="sparkles"></i>
+                    </div>
+                    <span class="brand-text">Celebration<span>AI</span></span>
+                </a>
+
+                <ul class="nav-links">
+                    <li><a href="{{ url_for('index') }}" class="nav-link {% if request.endpoint == 'index' %}active{% endif %}">Home</a></li>
+                    <li><a href="{{ url_for('explore') }}" class="nav-link {% if request.endpoint == 'explore' %}active{% endif %}">Explore Ideas</a></li>
+                    <li><a href="{{ url_for('how_it_works') }}" class="nav-link {% if request.endpoint == 'how_it_works' %}active{% endif %}">How It Works</a></li>
+                    <li><a href="{{ url_for('my_events') }}" class="nav-link {% if request.endpoint in ['my_events', 'event_dashboard'] %}active{% endif %}">My Events</a></li>
+                </ul>
+
+                <div class="nav-actions">
+                    {% if current_user %}
+                        <span style="font-size:0.875rem; color:var(--color-plum-800); font-weight:600; display:inline-flex; align-items:center; gap:0.35rem;">
+                            <i data-lucide="user" style="width:16px; height:16px;"></i> {{ current_user.name.split(' ')[0] }}
+                        </span>
+                        <a href="{{ url_for('logout') }}" class="btn btn-sm btn-outline" title="Sign Out">Sign Out</a>
+                    {% else %}
+                        <a href="{{ url_for('login') }}" class="btn btn-sm btn-outline">Sign In</a>
+                    {% endif %}
+
+                    <a href="{{ url_for('create_event') }}" class="btn btn-sm btn-primary">
+                        <i data-lucide="calendar-heart"></i>
+                        <span>Plan an Event</span>
+                    </a>
+
+                    <button class="mobile-menu-btn" aria-label="Toggle Mobile Menu">
+                        <i data-lucide="menu"></i>
+                    </button>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Flash Messages Container -->
+    <div class="alert-container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">
+                        <div style="display:flex; align-items:center; gap:0.5rem;">
+                            <span>{{ message }}</span>
+                        </div>
+                        <button class="alert-close" onclick="this.parentElement.remove()">&times;</button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+
+    <!-- Main Content -->
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="site-footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <a href="{{ url_for('index') }}" class="brand-logo" style="color:#FFFFFF;">
+                        <div class="brand-icon" style="background:#5E1931;">
+                            <i data-lucide="sparkles"></i>
+                        </div>
+                        <span class="brand-text" style="color:#FFFFFF;">Celebration<span style="color:var(--color-gold-400);">AI</span></span>
+                    </a>
+                    <p>
+                        A thoughtful, human-centered event workspace that turns celebratory dreams into structured budgets, timelines, and personalized inspiration using generative AI.
+                    </p>
+                </div>
+
+                <div>
+                    <h4 class="footer-col-title">Celebrations</h4>
+                    <ul class="footer-links">
+                        <li><a href="{{ url_for('create_event', type='Wedding') }}">Weddings & Receptions</a></li>
+                        <li><a href="{{ url_for('create_event', type='Birthday') }}">Birthday Parties</a></li>
+                        <li><a href="{{ url_for('create_event', type='Anniversary') }}">Anniversaries</a></li>
+                        <li><a href="{{ url_for('create_event', type='College Festival') }}">College Festivals</a></li>
+                        <li><a href="{{ url_for('create_event', type='Community Gathering') }}">Community Events</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h4 class="footer-col-title">Workspace</h4>
+                    <ul class="footer-links">
+                        <li><a href="{{ url_for('my_events') }}">My Event Plans</a></li>
+                        <li><a href="{{ url_for('explore') }}">Themes & Palettes</a></li>
+                        <li><a href="{{ url_for('how_it_works') }}">AI Planning Methodology</a></li>
+                        <li><a href="{{ url_for('create_event') }}">Event Creation Wizard</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h4 class="footer-col-title">Platform & Trust</h4>
+                    <ul class="footer-links">
+                        <li><span style="color:rgba(245, 236, 217, 0.7); font-size:0.875rem;">Support via In-Dashboard AI Assistant</span></li>
+                        <li><span style="color:rgba(245, 236, 217, 0.7); font-size:0.875rem;">Private & Secure Guest Data</span></li>
+                        <li><span style="color:rgba(245, 236, 217, 0.7); font-size:0.875rem;">Strict Budget Arithmetic Guarantee</span></li>
+                        <li><span style="color:rgba(245, 236, 217, 0.7); font-size:0.875rem;">Engineered for Challenge 5</span></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <div>&copy; {{ current_year }} CelebrationAI. Designed for memorable milestones.</div>
+                <div style="display:flex; gap:1.5rem;">
+                    <span>Privacy Policy</span>
+                    <span>Terms of Service</span>
+                    <span>No unverified vendor data</span>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

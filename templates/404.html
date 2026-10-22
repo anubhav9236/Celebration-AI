@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block title %}Page Not Found — CelebrationAI{% endblock %}
+
+{% block content %}
+<div class="container container-narrow" style="padding: 6rem 1.5rem 8rem; text-align: center;">
+    <div style="font-family: var(--font-heading); font-size: 6rem; font-weight: 700; color: var(--color-plum-800); line-height: 1;">
+        404
+    </div>
+    <h2 style="margin: 1rem 0; font-size: 2.25rem;">Celebration Not Found</h2>
+    <p style="max-width: 480px; margin: 0 auto 2.5rem; color: var(--color-text-muted);">
+        The page or event plan you are looking for may have been moved, removed, or does not exist.
+    </p>
+    <div style="display:flex; justify-content:center; gap:1rem;">
+        <a href="{{ url_for('index') }}" class="btn btn-primary">
+            <i data-lucide="home"></i>
+            <span>Return Home</span>
+        </a>
+        <a href="{{ url_for('my_events') }}" class="btn btn-outline">
+            <i data-lucide="calendar"></i>
+            <span>My Events</span>
+        </a>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,1080 @@
+{% extends "base.html" %}
+
+{% block title %}{{ event.title }} — CelebrationAI Dashboard{% endblock %}
+
+{% block content %}
+<!-- Hidden Event ID Meta for JS -->
+<input type="hidden" id="event-meta-id" value="{{ event.id }}">
+
+<!-- Embedded JSON for Chart.js -->
+<script type="application/json" id="chart-data-expenses">
+{{ expenses|tojson }}
+</script>
+
+<!-- Dashboard Event Header -->
+<div class="dashboard-header">
+    <div class="container">
+        <div class="dashboard-header-flex">
+            <div>
+                <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:0.5rem; flex-wrap:wrap;">
+                    <span class="badge badge-gold">{{ event.event_type }}</span>
+                    <span class="badge badge-plum" style="background:rgba(255,255,255,0.15); color:#FFFFFF;">
+                        {{ event.indoor_outdoor }}
+                    </span>
+                    {% if event.budget_tier %}
+                    <span class="badge badge-gold" style="text-transform:capitalize;">
+                        {{ event.budget_tier }} Style
+                    </span>
+                    {% endif %}
+                </div>
+                <h1 class="event-hero-title">{{ event.title }}</h1>
+                <div class="event-meta-bar">
+                    <div class="meta-pill">
+                        <i data-lucide="calendar"></i>
+                        <span>{{ event.event_date }} {% if event.start_time %}at {{ event.start_time }}{% endif %}</span>
+                    </div>
+                    <div class="meta-pill">
+                        <i data-lucide="map-pin"></i>
+                        <span>{{ event.location }}</span>
+                    </div>
+                    <div class="meta-pill">
+                        <i data-lucide="users"></i>
+                        <span>{{ confirmed_attendees }} confirmed of {{ total_invited }} invited ({{ event.guest_count }} capacity)</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Header Right: Countdown & AI Actions -->
+            <div style="display:flex; align-items:center; gap:1.25rem;">
+                {% if days_left is not none %}
+                    <div class="countdown-box">
+                        <div class="countdown-digits">
+                            {% if days_left > 0 %}{{ days_left }}{% elif days_left == 0 %}🎉{% else %}—{% endif %}
+                        </div>
+                        <div class="countdown-label">
+                            {% if days_left > 0 %}Days to Celebration{% elif days_left == 0 %}Today!{% else %}Past Celebration{% endif %}
+                        </div>
+                    </div>
+                {% endif %}
+
+                <button type="button" class="btn btn-outline" id="btn-regenerate-plan" style="color:#FFFFFF; border-color:rgba(255,255,255,0.3);" title="Re-run AI Planner on Event Specifications">
+                    <i data-lucide="sparkles"></i>
+                    <span>Regenerate with AI</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Dashboard Sticky Tabs Navigation -->
+<div class="dashboard-tabs-wrap">
+    <div class="container">
+        <ul class="dashboard-nav-tabs" role="tablist">
+            <li>
+                <button class="tab-btn active" data-tab="overview">
+                    <i data-lucide="layout-dashboard"></i>
+                    <span>Overview</span>
+                </button>
+            </li>
+            <li>
+                <button class="tab-btn" data-tab="budget">
+                    <i data-lucide="wallet"></i>
+                    <span>Budget ({{ expenses|length }})</span>
+                </button>
+            </li>
+            <li>
+                <button class="tab-btn" data-tab="timeline">
+                    <i data-lucide="calendar-clock"></i>
+                    <span>Timeline ({{ tasks|length }})</span>
+                </button>
+            </li>
+            <li>
+                <button class="tab-btn" data-tab="vendors">
+                    <i data-lucide="briefcase"></i>
+                    <span>Vendors ({{ vendors|length }})</span>
+                </button>
+            </li>
+            <li>
+                <button class="tab-btn" data-tab="guests">
+                    <i data-lucide="user-check"></i>
+                    <span>Guest List ({{ guests|length }})</span>
+                </button>
+            </li>
+            <li>
+                <button class="tab-btn" data-tab="ideas">
+                    <i data-lucide="lightbulb"></i>
+                    <span>Ideas ({{ ideas|length }})</span>
+                </button>
+            </li>
+            <li>
+                <button class="tab-btn" data-tab="checklist">
+                    <i data-lucide="check-square"></i>
+                    <span>Checklist ({{ checklist|length }})</span>
+                </button>
+            </li>
+        </ul>
+    </div>
+</div>
+
+<!-- Main Tabs Content Container -->
+<div class="container">
+
+    <!-- ===================================================================== -->
+    <!-- TAB 1: OVERVIEW -->
+    <!-- ===================================================================== -->
+    <div class="tab-pane active" id="tab-overview">
+        {% set tb = (total_budget or 0)|float %}
+        {% set tp = (total_planned or 0)|float %}
+        {% set ta = (total_actual or 0)|float %}
+        {% set rb = (remaining_budget or 0)|float %}
+        {% set planned_pct = ((tp / tb) * 100)|round(1) if tb > 0 else 0 %}
+        {% set util_pct = (budget_utilization or 0)|float %}
+
+        <!-- Quick Metric Cards -->
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="metric-card-title">Target Budget</div>
+                <div class="metric-card-value">₹{{ "{:,.0f}".format(tb) }}</div>
+                <div class="metric-card-sub">
+                    Planned: ₹{{ "{:,.0f}".format(tp) }} ({{ planned_pct }}%)
+                </div>
+                <div class="progress-bar-wrap">
+                    <div class="progress-bar-fill" style="width:{{ [planned_pct, 100]|min }}%;"></div>
+                </div>
+            </div>
+
+            <div class="metric-card">
+                <div class="metric-card-title">Actual Spending</div>
+                <div class="metric-card-value">₹{{ "{:,.0f}".format(ta) }}</div>
+                <div class="metric-card-sub">
+                    Remaining: ₹{{ "{:,.0f}".format(rb) }}
+                </div>
+                <div class="progress-bar-wrap">
+                    <div class="progress-bar-fill" style="background:var(--color-success); width:{{ [util_pct, 100]|min }}%;"></div>
+                </div>
+            </div>
+
+            <div class="metric-card">
+                <div class="metric-card-title">Milestone Tasks</div>
+                <div class="metric-card-value">{{ task_percent or 0 }}%</div>
+                <div class="metric-card-sub">
+                    {{ tasks|selectattr('is_completed')|list|length }} of {{ tasks|length }} milestones achieved
+                </div>
+                <div class="progress-bar-wrap">
+                    <div class="progress-bar-fill" style="width:{{ (task_percent or 0)|float }}%;"></div>
+                </div>
+            </div>
+
+            <div class="metric-card">
+                <div class="metric-card-title">Vendors Coordinated</div>
+                <div class="metric-card-value">{{ vendor_percent or 0 }}%</div>
+                <div class="metric-card-sub">
+                    {{ vendors|selectattr('booking_status', 'in', ['Booked', 'Completed'])|list|length }} of {{ vendors|length }} categories booked
+                </div>
+                <div class="progress-bar-wrap">
+                    <div class="progress-bar-fill" style="width:{{ (vendor_percent or 0)|float }}%;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- AI Concept Highlight Card -->
+        {% if event.ai_concept and event.ai_concept.theme %}
+        <div class="card" style="margin-bottom:2rem; background:linear-gradient(to right, #FFFBF5, #FFFFFF); border-left:4px solid var(--color-gold-500);">
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:1rem; flex-wrap:wrap; gap:1rem;">
+                <div style="display:flex; align-items:center; gap:0.5rem;">
+                    <i data-lucide="sparkles" style="color:var(--color-gold-600);"></i>
+                    <h3 style="font-size:1.45rem; margin:0;">AI Event Concept: {{ event.ai_concept.theme }}</h3>
+                </div>
+
+                {% if event.ai_concept.palette %}
+                <div style="display:flex; align-items:center; gap:0.4rem;">
+                    <span style="font-size:0.75rem; text-transform:uppercase; color:var(--color-text-light); font-weight:600;">Theme Palette:</span>
+                    {% for hex in event.ai_concept.palette %}
+                    <span class="palette-dot" style="background:{{ hex }}; width:18px; height:18px;" title="{{ hex }}"></span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1.5rem; font-size:0.925rem;">
+                <div>
+                    <h5 style="color:var(--color-plum-800); margin-bottom:0.35rem;">Atmosphere & Guest Experience</h5>
+                    <p>{{ event.ai_concept.atmosphere }}</p>
+                </div>
+                <div>
+                    <h5 style="color:var(--color-plum-800); margin-bottom:0.35rem;">Decor & Visual Direction</h5>
+                    <p>{{ event.ai_concept.decor }}</p>
+                </div>
+            </div>
+
+            {% if event.ai_concept.tips %}
+            <div style="margin-top:1rem; padding-top:1rem; border-top:1px dashed var(--color-border); font-size:0.875rem; color:var(--color-gold-700);">
+                <strong><i data-lucide="lightbulb" style="width:14px; height:14px; vertical-align:middle;"></i> Planning Tip:</strong> {{ event.ai_concept.tips }}
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <!-- Two Column Overview: Upcoming Milestones & Vendor Progress -->
+        <div style="display:grid; grid-template-columns: 1.15fr 0.85fr; gap:2rem;">
+            <!-- Upcoming Tasks -->
+            <div class="card">
+                <div class="card-header">
+                    <h4 style="margin:0;">Priority Upcoming Tasks</h4>
+                    <button class="btn btn-sm btn-outline" onclick="document.querySelector('.tab-btn[data-tab=\'timeline\']').click()">View All</button>
+                </div>
+
+                {% set pending_tasks = tasks|rejectattr('is_completed')|list %}
+                {% if not pending_tasks %}
+                <p style="text-align:center; padding:2rem 0; color:var(--color-text-light);">All scheduled tasks are completed!</p>
+                {% else %}
+                <div style="display:flex; flex-direction:column; gap:0.75rem;">
+                    {% for t in pending_tasks[:5] %}
+                    <div style="display:flex; align-items:center; justify-content:space-between; padding:0.75rem 1rem; background:var(--color-surface-soft); border-radius:var(--radius-md);">
+                        <div style="display:flex; align-items:center; gap:0.75rem;">
+                            <input type="checkbox" onchange="toggleTask({{ t.id }}, this)" style="cursor:pointer; width:16px; height:16px;">
+                            <div>
+                                <strong style="font-size:0.9rem; color:var(--color-plum-800);">{{ t.title }}</strong>
+                                <div style="font-size:0.775rem; color:var(--color-text-light);">
+                                    Due: {{ t.due_date or 'Flexible' }}
+                                    {% if t.is_overdue %}<span class="overdue-tag">&bull; Overdue</span>{% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <span class="badge {% if t.priority == 'High' %}badge-danger{% elif t.priority == 'Medium' %}badge-warning{% else %}badge-neutral{% endif %}">
+                            {{ t.priority }}
+                        </span>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Quick Actions & Status -->
+            <div class="card">
+                <div class="card-header">
+                    <h4 style="margin:0;">Quick Actions</h4>
+                </div>
+
+                <div style="display:flex; flex-direction:column; gap:0.75rem;">
+                    <button class="btn btn-outline" style="justify-content:flex-start;" onclick="openModal('modal-add-expense')">
+                        <i data-lucide="receipt"></i>
+                        <span>Record an Expense</span>
+                    </button>
+                    <button class="btn btn-outline" style="justify-content:flex-start;" onclick="openModal('modal-add-guest')">
+                        <i data-lucide="user-plus"></i>
+                        <span>Add Guest to List</span>
+                    </button>
+                    <button class="btn btn-outline" style="justify-content:flex-start;" onclick="openModal('modal-add-task')">
+                        <i data-lucide="calendar-plus"></i>
+                        <span>Add Timeline Milestone</span>
+                    </button>
+                    <button class="btn btn-outline" style="justify-content:flex-start;" onclick="openModal('modal-add-checklist')">
+                        <i data-lucide="check-square"></i>
+                        <span>Add Shopping Item</span>
+                    </button>
+                    <button class="btn btn-primary" style="justify-content:flex-start; margin-top:0.5rem;" onclick="document.getElementById('chat-toggle-btn').click()">
+                        <i data-lucide="message-square"></i>
+                        <span>Ask AI Assistant for Advice</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- TAB 2: BUDGET & EXPENSES -->
+    <!-- ===================================================================== -->
+    <div class="tab-pane" id="tab-budget">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:1.5rem; flex-wrap:wrap; gap:1rem;">
+            <div>
+                <h3 style="font-size:1.6rem; color:var(--color-plum-800);">Budget & Expense Tracker</h3>
+                <p style="font-size:0.875rem;">Monitor estimated allocations against actual vendor invoices. Guaranteed total spending integrity.</p>
+            </div>
+            <button class="btn btn-primary" onclick="openModal('modal-add-expense')">
+                <i data-lucide="plus-circle"></i>
+                <span>Add Expense Item</span>
+            </button>
+        </div>
+
+        <!-- Budget Visual Charts -->
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1.5rem; margin-bottom:2rem;">
+            <div class="card">
+                <h4 style="font-size:1.15rem; margin-bottom:1rem;">Category Allocation (Planned)</h4>
+                <div style="height:260px; position:relative;">
+                    <canvas id="budgetCategoryChart"></canvas>
+                </div>
+            </div>
+
+            <div class="card">
+                <h4 style="font-size:1.15rem; margin-bottom:1rem;">Planned vs. Actual Spend</h4>
+                <div style="height:260px; position:relative;">
+                    <canvas id="budgetComparisonChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Expenses Table -->
+        <div class="card">
+            <div class="table-responsive">
+                <table class="custom-table">
+                    <thead>
+                        <tr>
+                            <th>Category</th>
+                            <th>Description</th>
+                            <th>Planned (Est.)</th>
+                            <th>Actual Spend</th>
+                            <th>Status</th>
+                            <th>Notes / Justification</th>
+                            <th style="text-align:right;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if not expenses %}
+                        <tr>
+                            <td colspan="7" style="text-align:center; padding:2.5rem; color:var(--color-text-light);">
+                                No expenses logged yet. Click "Add Expense Item" to begin tracking.
+                            </td>
+                        </tr>
+                        {% else %}
+                        {% for exp in expenses %}
+                        <tr>
+                            <td><span class="badge badge-plum">{{ exp.category }}</span></td>
+                            <td><strong>{{ exp.title }}</strong></td>
+                            <td>₹{{ "{:,.2f}".format((exp.planned_amount or 0)|float) }}</td>
+                            <td style="color:{% if (exp.actual_amount or 0)|float > (exp.planned_amount or 0)|float %}var(--color-danger){% else %}var(--color-plum-800){% endif %}; font-weight:600;">
+                                ₹{{ "{:,.2f}".format((exp.actual_amount or 0)|float) }}
+                            </td>
+                            <td>
+                                <span class="badge {% if exp.status == 'Paid' %}badge-success{% elif exp.status == 'Pending' %}badge-warning{% else %}badge-neutral{% endif %}">
+                                    {{ exp.status }}
+                                </span>
+                            </td>
+                            <td style="font-size:0.85rem; color:var(--color-text-muted); max-width:240px;">
+                                {{ exp.notes or '—' }}
+                            </td>
+                            <td style="text-align:right;">
+                                <button class="btn btn-sm btn-outline" style="color:var(--color-danger); border-color:transparent;" onclick="deleteExpense({{ exp.id }})" title="Delete Expense">
+                                    <i data-lucide="trash-2"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- TAB 3: TIMELINE -->
+    <!-- ===================================================================== -->
+    <div class="tab-pane" id="tab-timeline">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:1.5rem; flex-wrap:wrap; gap:1rem;">
+            <div>
+                <h3 style="font-size:1.6rem; color:var(--color-plum-800);">Date-Aware Timeline Schedule</h3>
+                <p style="font-size:0.875rem;">Milestones scheduled chronologically leading up to {{ event.event_date }}.</p>
+            </div>
+            <button class="btn btn-primary" onclick="openModal('modal-add-task')">
+                <i data-lucide="plus-circle"></i>
+                <span>Add Milestone</span>
+            </button>
+        </div>
+
+        <div class="card">
+            <div class="table-responsive">
+                <table class="custom-table">
+                    <thead>
+                        <tr>
+                            <th style="width:40px;">Done</th>
+                            <th>Milestone Task</th>
+                            <th>Due Date</th>
+                            <th>Category</th>
+                            <th>Priority</th>
+                            <th>Explanation</th>
+                            <th style="text-align:right;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if not tasks %}
+                        <tr>
+                            <td colspan="7" style="text-align:center; padding:2.5rem; color:var(--color-text-light);">
+                                No timeline milestones set. Add tasks to maintain schedule clarity.
+                            </td>
+                        </tr>
+                        {% else %}
+                        {% for t in tasks %}
+                        <tr id="task-row-{{ t.id }}" class="{% if t.is_completed %}completed-task{% endif %}" style="{% if t.is_completed %}opacity:0.6;{% endif %}">
+                            <td>
+                                <input type="checkbox" {% if t.is_completed %}checked{% endif %} onchange="toggleTask({{ t.id }}, this)" style="cursor:pointer; width:16px; height:16px;">
+                            </td>
+                            <td>
+                                <strong style="font-size:0.95rem; color:var(--color-plum-800);">{{ t.title }}</strong>
+                            </td>
+                            <td>
+                                <span>{{ t.due_date or 'Flexible' }}</span>
+                                {% if t.is_overdue %}<span class="overdue-tag">&bull; Overdue</span>{% endif %}
+                            </td>
+                            <td><span class="badge badge-neutral">{{ t.category }}</span></td>
+                            <td>
+                                <span class="badge {% if t.priority == 'High' %}badge-danger{% elif t.priority == 'Medium' %}badge-warning{% else %}badge-neutral{% endif %}">
+                                    {{ t.priority }}
+                                </span>
+                            </td>
+                            <td style="font-size:0.85rem; color:var(--color-text-muted); max-width:300px;">
+                                {{ t.explanation or '—' }}
+                            </td>
+                            <td style="text-align:right;">
+                                <button class="btn btn-sm btn-outline" style="color:var(--color-danger); border-color:transparent;" onclick="deleteTask({{ t.id }})" title="Delete Task">
+                                    <i data-lucide="trash-2"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- TAB 4: VENDORS -->
+    <!-- ===================================================================== -->
+    <div class="tab-pane" id="tab-vendors">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:1.5rem; flex-wrap:wrap; gap:1rem;">
+            <div>
+                <h3 style="font-size:1.6rem; color:var(--color-plum-800);">Vendor Checklist & Directory</h3>
+                <p style="font-size:0.875rem;">Manage service categories, deadlines, and real vendor contacts. No invented business listings.</p>
+            </div>
+            <button class="btn btn-primary" onclick="openModal('modal-add-vendor')">
+                <i data-lucide="plus-circle"></i>
+                <span>Add Vendor Record</span>
+            </button>
+        </div>
+
+        <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap:1.5rem;">
+            {% if not vendors %}
+            <div class="card" style="grid-column: 1/-1; text-align:center; padding:3rem;">
+                <p style="color:var(--color-text-light);">No vendor records yet. Click "Add Vendor Record" to track contracts.</p>
+            </div>
+            {% else %}
+            {% for v in vendors %}
+            <div class="card" style="display:flex; flex-direction:column; justify-content:space-between;">
+                <div>
+                    <div style="display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:0.75rem;">
+                        <span class="badge badge-plum">{{ v.category }}</span>
+                        <select class="form-select" style="padding:0.25rem 0.5rem; font-size:0.75rem; width:auto;" onchange="updateVendorStatus({{ v.id }}, this.value)">
+                            <option value="Needed" {% if v.booking_status == 'Needed' %}selected{% endif %}>Needed</option>
+                            <option value="Contacted" {% if v.booking_status == 'Contacted' %}selected{% endif %}>Contacted</option>
+                            <option value="Booked" {% if v.booking_status == 'Booked' %}selected{% endif %}>Booked</option>
+                            <option value="Completed" {% if v.booking_status == 'Completed' %}selected{% endif %}>Completed</option>
+                            <option value="Not Needed" {% if v.booking_status == 'Not Needed' %}selected{% endif %}>Not Needed</option>
+                        </select>
+                    </div>
+
+                    <h4 style="font-size:1.2rem; margin-bottom:0.4rem;">
+                        {{ v.name or '(Vendor Name Unassigned)' }}
+                    </h4>
+
+                    <div style="font-size:0.85rem; color:var(--color-text-muted); margin-bottom:0.75rem;">
+                        <div><strong>Contact:</strong> {{ v.contact_info or 'Not yet added' }}</div>
+                        <div><strong>Deadline:</strong> {{ v.deadline or 'Suggested 4 weeks before' }}</div>
+                        <div><strong>Est. Allocation:</strong> ₹{{ "{:,.0f}".format(v.estimated_cost) }}</div>
+                    </div>
+
+                    {% if v.notes %}
+                    <p style="font-size:0.8rem; background:var(--color-surface-soft); padding:0.5rem 0.75rem; border-radius:var(--radius-sm); color:var(--color-text-muted);">
+                        {{ v.notes }}
+                    </p>
+                    {% endif %}
+                </div>
+
+                <div style="display:flex; justify-content:flex-end; padding-top:0.75rem; border-top:1px solid var(--color-surface-soft); margin-top:1rem;">
+                    <button class="btn btn-sm btn-outline" style="color:var(--color-danger); border-color:transparent;" onclick="deleteVendor({{ v.id }})">
+                        <i data-lucide="trash-2"></i>
+                        <span>Remove</span>
+                    </button>
+                </div>
+            </div>
+            {% endfor %}
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- TAB 5: GUEST LIST -->
+    <!-- ===================================================================== -->
+    <div class="tab-pane" id="tab-guests">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:1.5rem; flex-wrap:wrap; gap:1rem;">
+            <div>
+                <h3 style="font-size:1.6rem; color:var(--color-plum-800);">Guest List & RSVP Manager</h3>
+                <p style="font-size:0.875rem;">Keep guest data private, track confirmed attendance, and log dietary requirements.</p>
+            </div>
+            <button class="btn btn-primary" onclick="openModal('modal-add-guest')">
+                <i data-lucide="user-plus"></i>
+                <span>Add Guest</span>
+            </button>
+        </div>
+
+        <!-- RSVP Summary Bar -->
+        <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:1rem; margin-bottom:1.5rem;">
+            <div class="card" style="padding:1rem; text-align:center;">
+                <span style="font-size:0.75rem; color:var(--color-text-light); text-transform:uppercase;">Total Invited</span>
+                <strong style="display:block; font-size:1.5rem; color:var(--color-plum-800);">{{ total_invited }}</strong>
+            </div>
+            <div class="card" style="padding:1rem; text-align:center;">
+                <span style="font-size:0.75rem; color:var(--color-success); text-transform:uppercase;">Confirmed Attending</span>
+                <strong style="display:block; font-size:1.5rem; color:var(--color-success);">{{ confirmed_attendees }}</strong>
+            </div>
+            <div class="card" style="padding:1rem; text-align:center;">
+                <span style="font-size:0.75rem; color:var(--color-warning); text-transform:uppercase;">Tentative / Pending</span>
+                <strong style="display:block; font-size:1.5rem; color:var(--color-warning);">
+                    {{ guests|selectattr('rsvp_status', 'in', ['Tentative', 'Invited'])|list|length }}
+                </strong>
+            </div>
+            <div class="card" style="padding:1rem; text-align:center;">
+                <span style="font-size:0.75rem; color:var(--color-danger); text-transform:uppercase;">Declined</span>
+                <strong style="display:block; font-size:1.5rem; color:var(--color-danger);">
+                    {{ guests|selectattr('rsvp_status', 'equalto', 'Declined')|list|length }}
+                </strong>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="table-responsive">
+                <table class="custom-table">
+                    <thead>
+                        <tr>
+                            <th>Guest Name</th>
+                            <th>RSVP Status</th>
+                            <th>Party Size (+1s)</th>
+                            <th>Dietary Preference</th>
+                            <th>Table / Group</th>
+                            <th>Contact / Notes</th>
+                            <th style="text-align:right;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if not guests %}
+                        <tr>
+                            <td colspan="7" style="text-align:center; padding:2.5rem; color:var(--color-text-light);">
+                                No guests registered yet. Click "Add Guest" to build your invitation list.
+                            </td>
+                        </tr>
+                        {% else %}
+                        {% for g in guests %}
+                        <tr>
+                            <td><strong>{{ g.name }}</strong></td>
+                            <td>
+                                <select class="form-select" style="padding:0.25rem 0.5rem; font-size:0.75rem; width:auto;" onchange="updateGuestRsvp({{ g.id }}, this.value)">
+                                    <option value="Attending" {% if g.rsvp_status == 'Attending' %}selected{% endif %}>Attending</option>
+                                    <option value="Tentative" {% if g.rsvp_status == 'Tentative' %}selected{% endif %}>Tentative</option>
+                                    <option value="Invited" {% if g.rsvp_status == 'Invited' %}selected{% endif %}>Invited</option>
+                                    <option value="Declined" {% if g.rsvp_status == 'Declined' %}selected{% endif %}>Declined</option>
+                                </select>
+                            </td>
+                            <td>{{ g.attendees_count }} attendees</td>
+                            <td><span class="badge badge-neutral">{{ g.dietary_preference }}</span></td>
+                            <td>{{ g.table_or_group or '—' }}</td>
+                            <td style="font-size:0.85rem; color:var(--color-text-muted);">
+                                {{ g.email_or_phone }} {% if g.notes %}&bull; {{ g.notes }}{% endif %}
+                            </td>
+                            <td style="text-align:right;">
+                                <button class="btn btn-sm btn-outline" style="color:var(--color-danger); border-color:transparent;" onclick="deleteGuest({{ g.id }})" title="Remove Guest">
+                                    <i data-lucide="trash-2"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- TAB 6: IDEAS -->
+    <!-- ===================================================================== -->
+    <div class="tab-pane" id="tab-ideas">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:1.5rem; flex-wrap:wrap; gap:1rem;">
+            <div>
+                <h3 style="font-size:1.6rem; color:var(--color-plum-800);">Personalized Creative Ideas</h3>
+                <p style="font-size:0.875rem;">AI-curated ideas for decor, menus, entertainment, and budget hacks. Save your favorites.</p>
+            </div>
+            <button class="btn btn-primary" onclick="openModal('modal-add-idea')">
+                <i data-lucide="plus-circle"></i>
+                <span>Add Custom Idea</span>
+            </button>
+        </div>
+
+        <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap:1.75rem;">
+            {% if not ideas %}
+            <div class="card" style="grid-column: 1/-1; text-align:center; padding:3rem;">
+                <p style="color:var(--color-text-light);">No creative ideas saved. Click "Regenerate with AI" to generate inspiration.</p>
+            </div>
+            {% else %}
+            {% for idea in ideas %}
+            <div class="card" style="display:flex; flex-direction:column; justify-content:space-between;">
+                <div>
+                    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:0.75rem;">
+                        <span class="badge badge-gold">{{ idea.category }}</span>
+                        <button class="btn btn-sm btn-outline" style="padding:0.25rem 0.5rem; font-size:0.75rem; border-color:transparent;" onclick="toggleFavoriteIdea({{ idea.id }}, this)">
+                            {% if idea.is_favorited %}
+                            <i data-lucide="bookmark-check" style="color:var(--color-gold-500)"></i> Saved
+                            {% else %}
+                            <i data-lucide="bookmark"></i> Save Idea
+                            {% endif %}
+                        </button>
+                    </div>
+
+                    <h4 style="font-size:1.25rem; margin-bottom:0.5rem; color:var(--color-plum-800);">
+                        {{ idea.title }}
+                    </h4>
+                    <p style="font-size:0.9rem; color:var(--color-text-muted); line-height:1.5;">
+                        {{ idea.description }}
+                    </p>
+                </div>
+            </div>
+            {% endfor %}
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- TAB 7: CHECKLIST -->
+    <!-- ===================================================================== -->
+    <div class="tab-pane" id="tab-checklist">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:1.5rem; flex-wrap:wrap; gap:1rem;">
+            <div>
+                <h3 style="font-size:1.6rem; color:var(--color-plum-800);">Shopping & Prep Checklist</h3>
+                <p style="font-size:0.875rem;">Actionable supplies, attire, invitations, and day-of essentials.</p>
+            </div>
+            <button class="btn btn-primary" onclick="openModal('modal-add-checklist')">
+                <i data-lucide="plus-circle"></i>
+                <span>Add Checklist Item</span>
+            </button>
+        </div>
+
+        <div class="card">
+            <div style="display:flex; flex-direction:column; gap:0.75rem;">
+                {% if not checklist %}
+                <p style="text-align:center; padding:2rem 0; color:var(--color-text-light);">Checklist is empty. Add items to track prep details.</p>
+                {% else %}
+                {% for item in checklist %}
+                <div id="checklist-item-{{ item.id }}" style="display:flex; align-items:center; justify-content:space-between; padding:0.85rem 1rem; background:var(--color-surface-soft); border-radius:var(--radius-md);" class="{% if item.is_completed %}completed-item{% endif %}">
+                    <div style="display:flex; align-items:center; gap:0.75rem;">
+                        <input type="checkbox" {% if item.is_completed %}checked{% endif %} onchange="toggleChecklistItem({{ item.id }})" style="cursor:pointer; width:16px; height:16px;">
+                        <div>
+                            <strong style="font-size:0.925rem; color:var(--color-plum-800);">{{ item.item_name }}</strong>
+                            <div style="font-size:0.775rem; color:var(--color-text-light);">
+                                Category: {{ item.category }} {% if item.estimated_cost > 0 %}&bull; Est: ₹{{ "{:,.0f}".format(item.estimated_cost) }}{% endif %}
+                                {% if item.notes %}&bull; {{ item.notes }}{% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    <button class="btn btn-sm btn-outline" style="color:var(--color-danger); border-color:transparent;" onclick="deleteChecklistItem({{ item.id }})">
+                        <i data-lucide="trash-2"></i>
+                    </button>
+                </div>
+                {% endfor %}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- ========================================================================= -->
+<!-- AI EVENT ASSISTANT CHAT DRAWER -->
+<!-- ========================================================================= -->
+<div class="chat-drawer">
+    <button class="chat-toggle-btn" id="chat-toggle-btn" title="Open AI Event Assistant">
+        <i data-lucide="bot-message-square" style="width:26px; height:26px;"></i>
+    </button>
+
+    <div class="chat-panel" id="chat-panel">
+        <div class="chat-header">
+            <div style="display:flex; align-items:center; gap:0.5rem;">
+                <i data-lucide="sparkles" style="color:var(--color-gold-400);"></i>
+                <strong>CelebrationAI Assistant</strong>
+            </div>
+            <button class="alert-close" id="chat-close-btn" style="color:#FFFFFF;">&times;</button>
+        </div>
+
+        <!-- Quick Prompt Suggestion Chips -->
+        <div style="padding:0.75rem 1rem; background:var(--color-surface-soft); display:flex; gap:0.5rem; overflow-x:auto; scrollbar-width:none; border-bottom:1px solid var(--color-border);">
+            <button type="button" class="btn btn-sm btn-outline quick-prompt-chip" data-prompt="How can I save ₹5,000 on this celebration?" style="font-size:0.75rem; padding:0.25rem 0.6rem; border-radius:var(--radius-pill); white-space:nowrap;">
+                💡 Save ₹5,000
+            </button>
+            <button type="button" class="btn btn-sm btn-outline quick-prompt-chip" data-prompt="Suggest a vegetarian tasting menu for our guests" style="font-size:0.75rem; padding:0.25rem 0.6rem; border-radius:var(--radius-pill); white-space:nowrap;">
+                🍽️ Veg Menu
+            </button>
+            <button type="button" class="btn btn-sm btn-outline quick-prompt-chip" data-prompt="Suggest indoor activities if it rains" style="font-size:0.75rem; padding:0.25rem 0.6rem; border-radius:var(--radius-pill); white-space:nowrap;">
+                ☔ Rain Plan
+            </button>
+            <button type="button" class="btn btn-sm btn-outline quick-prompt-chip" data-prompt="What should I complete this week?" style="font-size:0.75rem; padding:0.25rem 0.6rem; border-radius:var(--radius-pill); white-space:nowrap;">
+                📅 This Week
+            </button>
+            <button type="button" class="btn btn-sm btn-outline quick-prompt-chip" data-prompt="Recalculate my budget after adding ₹2,000 for photography" style="font-size:0.75rem; padding:0.25rem 0.6rem; border-radius:var(--radius-pill); white-space:nowrap;">
+                📷 Add ₹2,000 Photo
+            </button>
+        </div>
+
+        <div class="chat-messages" id="chat-messages">
+            {% for msg in chat_history %}
+            <div class="chat-bubble {{ msg.sender }}">
+                {{ msg.content|safe }}
+            </div>
+            {% endfor %}
+        </div>
+
+        <form class="chat-input-bar" id="chat-form">
+            <input type="text" class="form-control" id="chat-input" placeholder="Ask your planner assistant..." autocomplete="off" required>
+            <button type="submit" class="btn btn-primary" style="padding:0.6rem 1rem;">
+                <i data-lucide="send"></i>
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- ========================================================================= -->
+<!-- MODALS -->
+<!-- ========================================================================= -->
+
+<!-- Modal: Add Expense -->
+<div class="modal-overlay" id="modal-add-expense">
+    <div class="modal-card">
+        <div class="modal-header">
+            <h4 style="margin:0;">Add Expense Item</h4>
+            <button class="alert-close" onclick="closeModal('modal-add-expense')">&times;</button>
+        </div>
+        <form id="form-add-expense">
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label" for="exp_category">Category</label>
+                    <select class="form-select" id="exp_category" required>
+                        <option value="Venue">Venue</option>
+                        <option value="Catering">Catering & Food</option>
+                        <option value="Decoration">Decoration & Florals</option>
+                        <option value="Photography">Photography</option>
+                        <option value="Videography">Videography</option>
+                        <option value="Music or DJ">Music & DJ</option>
+                        <option value="Invitations">Invitations</option>
+                        <option value="Cake and desserts">Cake & Desserts</option>
+                        <option value="Transportation">Transportation</option>
+                        <option value="Contingency Fund">Contingency Fund</option>
+                        <option value="Miscellaneous">Miscellaneous</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="exp_title">Expense Title / Item <span style="color:var(--color-danger)">*</span></label>
+                    <input type="text" class="form-control" id="exp_title" placeholder="e.g. Lawn advance deposit" required>
+                </div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+                    <div class="form-group">
+                        <label class="form-label" for="exp_planned">Planned Amount (₹)</label>
+                        <input type="number" class="form-control" id="exp_planned" min="0" step="100" value="0">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="exp_actual">Actual Amount (₹)</label>
+                        <input type="number" class="form-control" id="exp_actual" min="0" step="100" value="0">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="exp_status">Payment Status</label>
+                    <select class="form-select" id="exp_status">
+                        <option value="Planned">Planned</option>
+                        <option value="Pending">Pending / Advance Paid</option>
+                        <option value="Paid">Fully Paid</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="exp_notes">Notes / Vendor Details</label>
+                    <input type="text" class="form-control" id="exp_notes" placeholder="e.g. Invoice #4023 due on Dec 1st">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline" onclick="closeModal('modal-add-expense')">Cancel</button>
+                <button type="submit" class="btn btn-primary">Save Expense</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal: Add Task -->
+<div class="modal-overlay" id="modal-add-task">
+    <div class="modal-card">
+        <div class="modal-header">
+            <h4 style="margin:0;">Add Timeline Task</h4>
+            <button class="alert-close" onclick="closeModal('modal-add-task')">&times;</button>
+        </div>
+        <form id="form-add-task">
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label" for="task_title">Task Description <span style="color:var(--color-danger)">*</span></label>
+                    <input type="text" class="form-control" id="task_title" placeholder="e.g. Finalize welcome sign mockups" required>
+                </div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+                    <div class="form-group">
+                        <label class="form-label" for="task_due_date">Due Date</label>
+                        <input type="date" class="form-control" id="task_due_date">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="task_priority">Priority</label>
+                        <select class="form-select" id="task_priority">
+                            <option value="High">High</option>
+                            <option value="Medium" selected>Medium</option>
+                            <option value="Low">Low</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="task_category">Category</label>
+                    <select class="form-select" id="task_category">
+                        <option value="Preparation" selected>Preparation</option>
+                        <option value="Booking">Booking</option>
+                        <option value="Shopping">Shopping</option>
+                        <option value="Day-Of">Day-Of</option>
+                        <option value="Post-Event">Post-Event</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="task_explanation">Why Needed / Notes</label>
+                    <input type="text" class="form-control" id="task_explanation" placeholder="e.g. Need printer 2 days before ceremony">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline" onclick="closeModal('modal-add-task')">Cancel</button>
+                <button type="submit" class="btn btn-primary">Add Task</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal: Add Vendor -->
+<div class="modal-overlay" id="modal-add-vendor">
+    <div class="modal-card">
+        <div class="modal-header">
+            <h4 style="margin:0;">Add Vendor Record</h4>
+            <button class="alert-close" onclick="closeModal('modal-add-vendor')">&times;</button>
+        </div>
+        <form id="form-add-vendor">
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label" for="vendor_category">Service Category <span style="color:var(--color-danger)">*</span></label>
+                    <select class="form-select" id="vendor_category" required>
+                        <option value="Venue & Facilities">Venue & Facilities</option>
+                        <option value="Catering & Dining">Catering & Dining</option>
+                        <option value="Decor & Lighting">Decor & Lighting</option>
+                        <option value="Photography">Photography</option>
+                        <option value="Videography">Videography</option>
+                        <option value="Music & Audio">Music & Audio</option>
+                        <option value="Invitations & Print">Invitations & Print</option>
+                        <option value="Bakery / Cake">Bakery / Cake</option>
+                        <option value="Hair & Makeup">Hair & Makeup</option>
+                        <option value="Transportation">Transportation</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="vendor_name">Vendor / Business Name</label>
+                    <input type="text" class="form-control" id="vendor_name" placeholder="e.g. Blossom Florals">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="vendor_contact">Contact (Phone / Email)</label>
+                    <input type="text" class="form-control" id="vendor_contact" placeholder="e.g. +91 98765 43210 or contact@vendor.com">
+                </div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+                    <div class="form-group">
+                        <label class="form-label" for="vendor_est_cost">Estimated Quote (₹)</label>
+                        <input type="number" class="form-control" id="vendor_est_cost" min="0" value="0">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="vendor_act_cost">Contracted Price (₹)</label>
+                        <input type="number" class="form-control" id="vendor_act_cost" min="0" value="0">
+                    </div>
+                </div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+                    <div class="form-group">
+                        <label class="form-label" for="vendor_booking_status">Booking Status</label>
+                        <select class="form-select" id="vendor_booking_status">
+                            <option value="Needed">Needed</option>
+                            <option value="Contacted">Contacted</option>
+                            <option value="Booked">Booked</option>
+                            <option value="Completed">Completed</option>
+                            <option value="Not Needed">Not Needed</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="vendor_payment_status">Payment Status</label>
+                        <select class="form-select" id="vendor_payment_status">
+                            <option value="Unpaid">Unpaid</option>
+                            <option value="Advance Paid">Advance Paid</option>
+                            <option value="Fully Paid">Fully Paid</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="vendor_deadline">Confirmation Deadline</label>
+                    <input type="date" class="form-control" id="vendor_deadline">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="vendor_notes">Notes</label>
+                    <input type="text" class="form-control" id="vendor_notes" placeholder="e.g. Includes stage lighting and 4 pedestal fans">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline" onclick="closeModal('modal-add-vendor')">Cancel</button>
+                <button type="submit" class="btn btn-primary">Save Vendor</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal: Add Guest -->
+<div class="modal-overlay" id="modal-add-guest">
+    <div class="modal-card">
+        <div class="modal-header">
+            <h4 style="margin:0;">Add Guest</h4>
+            <button class="alert-close" onclick="closeModal('modal-add-guest')">&times;</button>
+        </div>
+        <form id="form-add-guest">
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label" for="guest_name">Guest Name <span style="color:var(--color-danger)">*</span></label>
+                    <input type="text" class="form-control" id="guest_name" placeholder="e.g. Priya Sharma" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="guest_contact">Phone or Email</label>
+                    <input type="text" class="form-control" id="guest_contact" placeholder="e.g. priya@example.com">
+                </div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+                    <div class="form-group">
+                        <label class="form-label" for="guest_rsvp">RSVP Status</label>
+                        <select class="form-select" id="guest_rsvp">
+                            <option value="Invited" selected>Invited</option>
+                            <option value="Attending">Attending</option>
+                            <option value="Tentative">Tentative</option>
+                            <option value="Declined">Declined</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="guest_count_input">Party Size (+1s)</label>
+                        <input type="number" class="form-control" id="guest_count_input" min="1" max="10" value="1" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="guest_diet">Dietary Preference</label>
+                    <select class="form-select" id="guest_diet">
+                        <option value="No preference" selected>No preference</option>
+                        <option value="Vegetarian">Vegetarian</option>
+                        <option value="Jain">Jain Vegetarian</option>
+                        <option value="Vegan">Vegan</option>
+                        <option value="Non-Vegetarian">Non-Vegetarian</option>
+                        <option value="Gluten-Free">Gluten-Free</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="guest_group">Table or Group Assignment</label>
+                    <input type="text" class="form-control" id="guest_group" placeholder="e.g. Table 4 / College Friends">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="guest_notes">Notes</label>
+                    <input type="text" class="form-control" id="guest_notes" placeholder="e.g. Requires wheelchair seating">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline" onclick="closeModal('modal-add-guest')">Cancel</button>
+                <button type="submit" class="btn btn-primary">Add Guest</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal: Add Checklist Item -->
+<div class="modal-overlay" id="modal-add-checklist">
+    <div class="modal-card">
+        <div class="modal-header">
+            <h4 style="margin:0;">Add Checklist Item</h4>
+            <button class="alert-close" onclick="closeModal('modal-add-checklist')">&times;</button>
+        </div>
+        <form id="form-add-checklist">
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label" for="chk_name">Item Description <span style="color:var(--color-danger)">*</span></label>
+                    <input type="text" class="form-control" id="chk_name" placeholder="e.g. Purchase brass bell favors" required>
+                </div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+                    <div class="form-group">
+                        <label class="form-label" for="chk_category">Category</label>
+                        <select class="form-select" id="chk_category">
+                            <option value="Supplies" selected>Supplies</option>
+                            <option value="Attire & Beauty">Attire & Beauty</option>
+                            <option value="Favors & Gifts">Favors & Gifts</option>
+                            <option value="Stationery">Stationery</option>
+                            <option value="Food & Cake">Food & Cake</option>
+                            <option value="Day-of Essentials">Day-of Essentials</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="chk_cost">Est. Cost (₹)</label>
+                        <input type="number" class="form-control" id="chk_cost" min="0" value="0">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="chk_notes">Notes</label>
+                    <input type="text" class="form-control" id="chk_notes" placeholder="e.g. Order 2 weeks in advance">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline" onclick="closeModal('modal-add-checklist')">Cancel</button>
+                <button type="submit" class="btn btn-primary">Add Item</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal: Add Custom Idea -->
+<div class="modal-overlay" id="modal-add-idea">
+    <div class="modal-card">
+        <div class="modal-header">
+            <h4 style="margin:0;">Add Custom Idea</h4>
+            <button class="alert-close" onclick="closeModal('modal-add-idea')">&times;</button>
+        </div>
+        <form id="form-add-idea">
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label" for="idea_category">Category</label>
+                    <select class="form-select" id="idea_category">
+                        <option value="Decor">Decor & Styling</option>
+                        <option value="Food & Menu">Food & Menu</option>
+                        <option value="Activities">Activities & Games</option>
+                        <option value="Entertainment">Entertainment</option>
+                        <option value="Return Gifts">Return Gifts</option>
+                        <option value="Budget Savings">Budget Savings</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="idea_title">Headline <span style="color:var(--color-danger)">*</span></label>
+                    <input type="text" class="form-control" id="idea_title" placeholder="e.g. Polaroid memory clothesline" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="idea_desc">Description</label>
+                    <textarea class="form-control" id="idea_desc" rows="3" placeholder="Describe how to execute this creative idea..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline" onclick="closeModal('modal-add-idea')">Cancel</button>
+                <button type="submit" class="btn btn-primary">Save Idea</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+<script src="{{ url_for('static', filename='js/chat.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block title %}How It Works — CelebrationAI Event Planning Architecture{% endblock %}
+
+{% block content %}
+<div class="container container-narrow" style="padding: 4rem 1.5rem 6rem;">
+    <div class="section-header" style="text-align: left; margin-bottom: 3rem;">
+        <span class="section-tag">Methodology & Technology</span>
+        <h1 class="section-title">Designed for Real Celebrations</h1>
+        <p style="font-size: 1.1rem;">CelebrationAI combines human-centered event design practices with Google Gemini generative AI to eliminate planning overwhelm while maintaining full budget control.</p>
+    </div>
+
+    <!-- Step 1 -->
+    <div class="card" style="margin-bottom: 2rem;">
+        <div style="display:flex; align-items:center; gap:1rem; margin-bottom:1rem;">
+            <div style="width:40px; height:40px; background:var(--color-plum-800); color:var(--color-gold-400); border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700;">1</div>
+            <h3 style="margin:0; font-size:1.45rem;">Context-Aware Event Modeling</h3>
+        </div>
+        <p style="margin-bottom:1rem;">
+            Every event begins with your real constraints: date, headcount, location, budget ceiling, cultural traditions, dietary boundaries (e.g. Pure Vegetarian, Jain, Vegan, Mixed), and needed services.
+        </p>
+        <p style="font-size:0.9rem; color:var(--color-text-muted);">
+            Rather than generic advice, CelebrationAI adjusts milestones based on lead time (whether you have 9 months for a grand wedding or 3 weeks for an intimate birthday).
+        </p>
+    </div>
+
+    <!-- Step 2 -->
+    <div class="card" style="margin-bottom: 2rem;">
+        <div style="display:flex; align-items:center; gap:1rem; margin-bottom:1rem;">
+            <div style="width:40px; height:40px; background:var(--color-plum-800); color:var(--color-gold-400); border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700;">2</div>
+            <h3 style="margin:0; font-size:1.45rem;">Generative AI & Mathematical Verification</h3>
+        </div>
+        <p style="margin-bottom:1rem;">
+            When you generate a plan, Google Gemini (via the official <code>google-genai</code> SDK) synthesizes tailored decoration themes, color swatches, culinary tasting menus, and actionable tasks into structured JSON.
+        </p>
+        <div style="background:var(--color-surface-soft); padding:1rem; border-radius:var(--radius-md); font-size:0.875rem;">
+            <strong style="color:var(--color-plum-800);"><i data-lucide="shield-check" style="width:16px; height:16px; vertical-align:middle;"></i> Mathematical Integrity Guarantee:</strong>
+            Our backend verifies the AI's arithmetic. Total planned allocations are strictly capped at your total budget, and a dedicated 5–10% contingency buffer is automatically reserved for unforeseen incidentals.
+        </div>
+    </div>
+
+    <!-- Step 3 -->
+    <div class="card" style="margin-bottom: 2rem;">
+        <div style="display:flex; align-items:center; gap:1rem; margin-bottom:1rem;">
+            <div style="width:40px; height:40px; background:var(--color-plum-800); color:var(--color-gold-400); border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700;">3</div>
+            <h3 style="margin:0; font-size:1.45rem;">The 7-in-1 Event Planner Workspace</h3>
+        </div>
+        <p style="margin-bottom:1rem;">
+            Your plan is automatically converted into an interactive workspace with seven specialized coordination tools:
+        </p>
+        <ul style="padding-left:1.5rem; display:flex; flex-direction:column; gap:0.5rem; font-size:0.925rem; color:var(--color-text-muted);">
+            <li><strong>Overview:</strong> Live countdown ticker, progress bars, and high-priority alerts.</li>
+            <li><strong>Budget:</strong> Interactive planned vs. actual expense tracker with Chart.js visualizations.</li>
+            <li><strong>Timeline:</strong> Chronological milestone tasks with overdue task alerts.</li>
+            <li><strong>Vendors:</strong> Booking workflows, contact records, and payment tracking.</li>
+            <li><strong>Guest List:</strong> RSVP tracker, dietary requirements, and confirmed attendee counts.</li>
+            <li><strong>Ideas:</strong> Curated creative concepts bookmarkable to your favorites.</li>
+            <li><strong>Checklist:</strong> Shopping and day-of preparation checklists with cost tracking.</li>
+        </ul>
+    </div>
+
+    <!-- Step 4 -->
+    <div class="card" style="margin-bottom: 3rem;">
+        <div style="display:flex; align-items:center; gap:1rem; margin-bottom:1rem;">
+            <div style="width:40px; height:40px; background:var(--color-plum-800); color:var(--color-gold-400); border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700;">4</div>
+            <h3 style="margin:0; font-size:1.45rem;">Conversational In-Dashboard Assistant</h3>
+        </div>
+        <p style="margin-bottom:1rem;">
+            Need to cut ₹5,000, adapt to rain, or draft a vegetarian menu? The slide-out assistant has direct access to your event's current numbers and presents structured action proposals that you can review and apply with one click.
+        </p>
+    </div>
+
+    <div style="text-align:center;">
+        <a href="{{ url_for('create_event') }}" class="btn btn-lg btn-primary">
+            <i data-lucide="sparkles"></i>
+            <span>Experience CelebrationAI Now</span>
+        </a>
+    </div>
+</div>
+{% endblock %}

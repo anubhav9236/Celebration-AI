@@ -1,0 +1,383 @@
+{% extends "base.html" %}
+
+{% block title %}CelebrationAI — Every Celebration Deserves a Beautiful Plan{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="container">
+        <div class="hero-grid">
+            <div class="hero-content">
+                <div class="hero-badge">
+                    <i data-lucide="sparkles" style="width:14px; height:14px;"></i>
+                    <span>Smart AI Celebration Workspace</span>
+                </div>
+                <h1 class="hero-title">
+                    Every celebration deserves a <em>beautiful plan.</em>
+                </h1>
+                <p class="hero-text">
+                    From intimate birthdays to unforgettable weddings, bring your ideas, budget, and plans together in one place with personalized generative AI.
+                </p>
+                <div class="hero-actions">
+                    <a href="{{ url_for('create_event') }}" class="btn btn-lg btn-primary">
+                        <i data-lucide="sparkles"></i>
+                        <span>Plan My Event</span>
+                    </a>
+                    <a href="{{ url_for('explore') }}" class="btn btn-lg btn-outline">
+                        <i data-lucide="compass"></i>
+                        <span>Explore Ideas</span>
+                    </a>
+                </div>
+
+                <div style="display:flex; align-items:center; gap:2rem; padding-top:1.5rem; border-top:1px solid var(--color-border);">
+                    <div>
+                        <strong style="display:block; font-family:var(--font-heading); font-size:1.75rem; color:var(--color-plum-800); line-height:1;">100%</strong>
+                        <span style="font-size:0.8rem; color:var(--color-text-light);">Budget Mathematical Precision</span>
+                    </div>
+                    <div style="width:1px; height:32px; background:var(--color-border);"></div>
+                    <div>
+                        <strong style="display:block; font-family:var(--font-heading); font-size:1.75rem; color:var(--color-plum-800); line-height:1;">8+</strong>
+                        <span style="font-size:0.8rem; color:var(--color-text-light);">Curated Event Types</span>
+                    </div>
+                    <div style="width:1px; height:32px; background:var(--color-border);"></div>
+                    <div>
+                        <strong style="display:block; font-family:var(--font-heading); font-size:1.75rem; color:var(--color-plum-800); line-height:1;">7-in-1</strong>
+                        <span style="font-size:0.8rem; color:var(--color-text-light);">Coordinated Planner Tabs</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Interactive Quick Event Planning Form -->
+            <div class="hero-form-card">
+                <h3 class="hero-form-title">Start Planning in Seconds</h3>
+                <p class="hero-form-sub">Enter a few details to jumpstart your tailored AI event blueprint.</p>
+
+                <form action="{{ url_for('create_event') }}" method="GET">
+                    <div class="form-group">
+                        <label class="form-label" for="quick_type">Celebration Type</label>
+                        <select class="form-select" id="quick_type" name="type" required>
+                            <option value="Wedding" selected>Wedding</option>
+                            <option value="Birthday">Birthday Party</option>
+                            <option value="Anniversary">Anniversary</option>
+                            <option value="Engagement">Engagement Ceremony</option>
+                            <option value="College Festival">College Festival</option>
+                            <option value="Community Gathering">Community Gathering</option>
+                            <option value="Baby Shower">Baby Shower</option>
+                            <option value="Cultural Celebration">Festival & Cultural Celebration</option>
+                        </select>
+                    </div>
+
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1rem;">
+                        <div class="form-group">
+                            <label class="form-label" for="quick_date">Target Date</label>
+                            <input type="date" class="form-control" id="quick_date" name="date" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="quick_guests">Guests</label>
+                            <input type="number" class="form-control" id="quick_guests" name="guests" min="5" max="5000" value="100" required>
+                        </div>
+                    </div>
+
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1rem;">
+                        <div class="form-group">
+                            <label class="form-label" for="quick_budget">Budget (₹ INR)</label>
+                            <input type="number" class="form-control" id="quick_budget" name="budget" min="1000" step="5000" value="250000" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="quick_location">Location / City</label>
+                            <input type="text" class="form-control" id="quick_location" name="location" placeholder="e.g. Bangalore, Mumbai" required>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" style="width:100%; margin-top:0.5rem; padding:0.85rem;">
+                        <i data-lucide="arrow-right"></i>
+                        <span>Continue to Event Creation</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Event Categories Section -->
+<section class="section">
+    <div class="container">
+        <div class="section-header">
+            <span class="section-tag">Versatile Celebrations</span>
+            <h2 class="section-title">What are you celebrating?</h2>
+            <p>From grand cultural nuptials to intimate milestone gatherings, select your celebration category to launch your custom planner.</p>
+        </div>
+
+        <div class="category-grid">
+            <a href="{{ url_for('create_event', type='Wedding', budget=500000) }}" class="category-card">
+                <div class="category-icon-wrap">
+                    <i data-lucide="heart-handshake" style="width:28px; height:28px;"></i>
+                </div>
+                <h3 class="category-name">Weddings</h3>
+                <p class="category-desc">Multi-event ceremonies, mandap decor, banquet catering, and guest logistics.</p>
+            </a>
+
+            <a href="{{ url_for('create_event', type='Birthday', budget=35000) }}" class="category-card">
+                <div class="category-icon-wrap">
+                    <i data-lucide="cake" style="width:28px; height:28px;"></i>
+                </div>
+                <h3 class="category-name">Birthdays</h3>
+                <p class="category-desc">Milestone birthdays, themed photo backdrops, sweet stations, and games.</p>
+            </a>
+
+            <a href="{{ url_for('create_event', type='Anniversary', budget=75000) }}" class="category-card">
+                <div class="category-icon-wrap">
+                    <i data-lucide="gem" style="width:28px; height:28px;"></i>
+                </div>
+                <h3 class="category-name">Anniversaries</h3>
+                <p class="category-desc">Intimate romantic dinners, silver jubilee galas, memory timelines, and toasts.</p>
+            </a>
+
+            <a href="{{ url_for('create_event', type='Engagement', budget=150000) }}" class="category-card">
+                <div class="category-icon-wrap">
+                    <i data-lucide="sparkle" style="width:28px; height:28px;"></i>
+                </div>
+                <h3 class="category-name">Engagements</h3>
+                <p class="category-desc">Ring ceremony setups, cocktail lounges, floral arches, and family welcomes.</p>
+            </a>
+
+            <a href="{{ url_for('create_event', type='College Festival', budget=300000) }}" class="category-card">
+                <div class="category-icon-wrap">
+                    <i data-lucide="music" style="width:28px; height:28px;"></i>
+                </div>
+                <h3 class="category-name">College Events</h3>
+                <p class="category-desc">Annual cultural fests, stage audio-visuals, student competitions, and safety.</p>
+            </a>
+
+            <a href="{{ url_for('create_event', type='Community Gathering', budget=100000) }}" class="category-card">
+                <div class="category-icon-wrap">
+                    <i data-lucide="users" style="width:28px; height:28px;"></i>
+                </div>
+                <h3 class="category-name">Community Gatherings</h3>
+                <p class="category-desc">Neighborhood galas, cultural days, youth workshops, and volunteer coordination.</p>
+            </a>
+
+            <a href="{{ url_for('create_event', type='Baby Shower', budget=45000) }}" class="category-card">
+                <div class="category-icon-wrap">
+                    <i data-lucide="baby" style="width:28px; height:28px;"></i>
+                </div>
+                <h3 class="category-name">Baby Showers</h3>
+                <p class="category-desc">Warm pastel aesthetics, godh bharai traditions, dessert tables, and keepsakes.</p>
+            </a>
+
+            <a href="{{ url_for('create_event', type='Cultural Celebration', budget=120000) }}" class="category-card">
+                <div class="category-icon-wrap">
+                    <i data-lucide="flame" style="width:28px; height:28px;"></i>
+                </div>
+                <h3 class="category-name">Festivals & Traditions</h3>
+                <p class="category-desc">Diwali, Eid, Christmas, Pongal, and regional traditional community gatherings.</p>
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- How It Works Section -->
+<section class="section section-alt">
+    <div class="container">
+        <div class="section-header">
+            <span class="section-tag">Effortless Coordination</span>
+            <h2 class="section-title">How CelebrationAI Works</h2>
+            <p>Our intelligent system transforms your ideas and budget into a comprehensive, actionable event masterplan in three simple steps.</p>
+        </div>
+
+        <div class="steps-grid">
+            <div class="step-card">
+                <div class="step-number">1</div>
+                <h3 class="step-title">Tell us about your celebration</h3>
+                <p>Input your event date, expected guest count, target budget, preferred style, cultural traditions, and services needed through our guided wizard.</p>
+            </div>
+
+            <div class="step-card">
+                <div class="step-number">2</div>
+                <h3 class="step-title">Get your personalized event plan</h3>
+                <p>Our generative AI engine produces tailored decor concepts, color palettes, menu concepts, and mathematically rigorous budget breakdowns with zero guesswork.</p>
+            </div>
+
+            <div class="step-card">
+                <div class="step-number">3</div>
+                <h3 class="step-title">Organize tasks, vendors & expenses</h3>
+                <p>Track your date-aware milestones, manage your guest RSVP list, log actual vendor quotes, and collaborate with your in-dashboard conversational assistant.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Inspiration Section -->
+<section class="section">
+    <div class="container">
+        <div class="section-header">
+            <span class="section-tag">Curated Aesthetics</span>
+            <h2 class="section-title">Popular Celebration Themes</h2>
+            <p>Explore handcrafted celebration concepts with tailored color palettes, decor visions, and catering styles ready to plan.</p>
+        </div>
+
+        <div class="inspiration-grid">
+            <!-- Theme 1: Minimalist Wedding -->
+            <div class="inspiration-card">
+                <div class="inspiration-img" style="background-image: url('https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=800&q=80');">
+                    <div class="inspiration-palette-pill">
+                        <span class="palette-dot" style="background:#4A1525;" title="Deep Plum"></span>
+                        <span class="palette-dot" style="background:#C5A059;" title="Muted Gold"></span>
+                        <span class="palette-dot" style="background:#FAF8F5;" title="Warm Ivory"></span>
+                        <span class="palette-dot" style="background:#8E2848;" title="Blush Rose"></span>
+                    </div>
+                </div>
+                <div class="inspiration-body">
+                    <span class="badge badge-plum" style="align-self:flex-start; margin-bottom:0.75rem;">Wedding & Reception</span>
+                    <h3 class="inspiration-title">Minimalist Pastel Splendor</h3>
+                    <p style="font-size:0.9rem; margin-bottom:1rem;">Warm ivory drapery, geometric metallic brass accents, blush garden roses, and airy modern floral arrangements.</p>
+                    <div class="inspiration-footer">
+                        <span style="font-size:0.85rem; font-weight:600; color:var(--color-plum-800);">Budget: ₹3L - ₹15L</span>
+                        <a href="{{ url_for('create_event', type='Wedding', theme='Minimalist Pastel Splendor', budget=450000) }}" class="btn btn-sm btn-outline-gold">Select Theme</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Theme 2: Garden Birthday Party -->
+            <div class="inspiration-card">
+                <div class="inspiration-img" style="background-image: url('https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?auto=format&fit=crop&w=800&q=80');">
+                    <div class="inspiration-palette-pill">
+                        <span class="palette-dot" style="background:#5E1931;" title="Burgundy"></span>
+                        <span class="palette-dot" style="background:#E6CA65;" title="Champagne Gold"></span>
+                        <span class="palette-dot" style="background:#3A5A40;" title="Sage Green"></span>
+                        <span class="palette-dot" style="background:#DDA15E;" title="Sunlit Tan"></span>
+                    </div>
+                </div>
+                <div class="inspiration-body">
+                    <span class="badge badge-gold" style="align-self:flex-start; margin-bottom:0.75rem;">Birthday Soirée</span>
+                    <h3 class="inspiration-title">Garden Twilight Soirée</h3>
+                    <p style="font-size:0.9rem; margin-bottom:1rem;">Fairy lights strung across open pergolas, botanical foliage walls, interactive mocktail bar, and acoustic jazz background.</p>
+                    <div class="inspiration-footer">
+                        <span style="font-size:0.85rem; font-weight:600; color:var(--color-plum-800);">Budget: ₹30k - ₹1.5L</span>
+                        <a href="{{ url_for('create_event', type='Birthday', theme='Garden Twilight Soirée', budget=50000) }}" class="btn btn-sm btn-outline-gold">Select Theme</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Theme 3: Elegant Anniversary Dinner -->
+            <div class="inspiration-card">
+                <div class="inspiration-img" style="background-image: url('https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=800&q=80');">
+                    <div class="inspiration-palette-pill">
+                        <span class="palette-dot" style="background:#330A17;" title="Deep Velvet"></span>
+                        <span class="palette-dot" style="background:#D4AF37;" title="Pure Gold"></span>
+                        <span class="palette-dot" style="background:#F5ECD9;" title="Champagne"></span>
+                        <span class="palette-dot" style="background:#C0C0C0;" title="Silver"></span>
+                    </div>
+                </div>
+                <div class="inspiration-body">
+                    <span class="badge badge-plum" style="align-self:flex-start; margin-bottom:0.75rem;">Anniversary Gala</span>
+                    <h3 class="inspiration-title">Candlelit Silver Symphony</h3>
+                    <p style="font-size:0.9rem; margin-bottom:1rem;">Taper candles in crystal flutes, white orchid table runners, retrospective photo montage, and personalized milestone menus.</p>
+                    <div class="inspiration-footer">
+                        <span style="font-size:0.85rem; font-weight:600; color:var(--color-plum-800);">Budget: ₹50k - ₹2.5L</span>
+                        <a href="{{ url_for('create_event', type='Anniversary', theme='Candlelit Silver Symphony', budget=80000) }}" class="btn btn-sm btn-outline-gold">Select Theme</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Theme 4: Colorful College Festival -->
+            <div class="inspiration-card">
+                <div class="inspiration-img" style="background-image: url('https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=800&q=80');">
+                    <div class="inspiration-palette-pill">
+                        <span class="palette-dot" style="background:#721D3B;" title="Plum"></span>
+                        <span class="palette-dot" style="background:#FF6B6B;" title="Coral"></span>
+                        <span class="palette-dot" style="background:#4ECDC4;" title="Cyan"></span>
+                        <span class="palette-dot" style="background:#FFE66D;" title="Bright Gold"></span>
+                    </div>
+                </div>
+                <div class="inspiration-body">
+                    <span class="badge badge-neutral" style="align-self:flex-start; margin-bottom:0.75rem;">College Campus</span>
+                    <h3 class="inspiration-title">Neon Pulse Campus Carnival</h3>
+                    <p style="font-size:0.9rem; margin-bottom:1rem;">Modular laser-lit stage truss, student artisan stalls, hackathon arena, battle of bands, and food truck pavilion.</p>
+                    <div class="inspiration-footer">
+                        <span style="font-size:0.85rem; font-weight:600; color:var(--color-plum-800);">Budget: ₹1.5L - ₹8L</span>
+                        <a href="{{ url_for('create_event', type='College Festival', theme='Neon Pulse Campus Carnival', budget=250000) }}" class="btn btn-sm btn-outline-gold">Select Theme</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Theme 5: Traditional Indian Celebration -->
+            <div class="inspiration-card">
+                <div class="inspiration-img" style="background-image: url('https://images.unsplash.com/photo-1545232979-8bf68ee9b1af?auto=format&fit=crop&w=800&q=80');">
+                    <div class="inspiration-palette-pill">
+                        <span class="palette-dot" style="background:#6B1D36;" title="Plum Crimson"></span>
+                        <span class="palette-dot" style="background:#C5A059;" title="Warm Brass"></span>
+                        <span class="palette-dot" style="background:#E76F51;" title="Terracotta Marigold"></span>
+                        <span class="palette-dot" style="background:#2B4C3F;" title="Deep Emerald"></span>
+                    </div>
+                </div>
+                <div class="inspiration-body">
+                    <span class="badge badge-gold" style="align-self:flex-start; margin-bottom:0.75rem;">Heritage & Cultural</span>
+                    <h3 class="inspiration-title">Royal Marigold & Brass Heritage</h3>
+                    <p style="font-size:0.9rem; margin-bottom:1rem;">Fresh orange and yellow marigold torans, antique brass urulis with floating tea lights, sitar instrumentals, and traditional thali dining.</p>
+                    <div class="inspiration-footer">
+                        <span style="font-size:0.85rem; font-weight:600; color:var(--color-plum-800);">Budget: ₹2L - ₹10L</span>
+                        <a href="{{ url_for('create_event', type='Cultural Celebration', theme='Royal Marigold & Brass Heritage', budget=350000) }}" class="btn btn-sm btn-outline-gold">Select Theme</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Theme 6: Community Gala -->
+            <div class="inspiration-card">
+                <div class="inspiration-img" style="background-image: url('https://images.unsplash.com/photo-1528605248644-14dd04022da1?auto=format&fit=crop&w=800&q=80');">
+                    <div class="inspiration-palette-pill">
+                        <span class="palette-dot" style="background:#4A1525;" title="Plum"></span>
+                        <span class="palette-dot" style="background:#52796F;" title="Earthy Green"></span>
+                        <span class="palette-dot" style="background:#C5A059;" title="Gold"></span>
+                        <span class="palette-dot" style="background:#FAF8F5;" title="Ivory"></span>
+                    </div>
+                </div>
+                <div class="inspiration-body">
+                    <span class="badge badge-plum" style="align-self:flex-start; margin-bottom:0.75rem;">Community Fellowship</span>
+                    <h3 class="inspiration-title">Community Harvest Festival</h3>
+                    <p style="font-size:0.9rem; margin-bottom:1rem;">Community potluck tables, cultural storytelling stage, intergenerational games, sustainable bamboo decor, and craft tables.</p>
+                    <div class="inspiration-footer">
+                        <span style="font-size:0.85rem; font-weight:600; color:var(--color-plum-800);">Budget: ₹50k - ₹3L</span>
+                        <a href="{{ url_for('create_event', type='Community Gathering', theme='Community Harvest Festival', budget=120000) }}" class="btn btn-sm btn-outline-gold">Select Theme</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div style="text-align:center; margin-top:3.5rem;">
+            <a href="{{ url_for('explore') }}" class="btn btn-outline">
+                <i data-lucide="compass"></i>
+                <span>Explore All Themes & Color Palettes</span>
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- Call to Action Banner -->
+<section style="background:linear-gradient(135deg, var(--color-plum-900), var(--color-plum-800)); color:#FFFFFF; padding:4.5rem 0; text-align:center; position:relative; overflow:hidden;">
+    <div class="container container-narrow">
+        <span class="badge badge-gold" style="margin-bottom:1rem;">Ready to Begin?</span>
+        <h2 style="color:#FFFFFF; font-size:2.8rem; margin-bottom:1.25rem;">Start crafting your celebration today.</h2>
+        <p style="color:var(--color-champagne); font-size:1.15rem; margin-bottom:2.5rem; max-width:600px; margin-left:auto; margin-right:auto;">
+            Set your budget, let generative AI craft your timeline and decor vision, and manage every milestone in one unified workspace.
+        </p>
+        <a href="{{ url_for('create_event') }}" class="btn btn-lg btn-gold">
+            <i data-lucide="sparkles"></i>
+            <span>Launch Event Creation Wizard</span>
+        </a>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Set default target date to 60 days from today in quick form
+    const d = new Date();
+    d.setDate(d.getDate() + 60);
+    const dateInput = document.getElementById("quick_date");
+    if (dateInput) {
+        dateInput.value = d.toISOString().split("T")[0];
+        dateInput.min = new Date().toISOString().split("T")[0];
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block title %}Something Went Wrong — CelebrationAI{% endblock %}
+
+{% block content %}
+<div class="container container-narrow" style="padding: 6rem 1.5rem 8rem; text-align: center;">
+    <div style="font-family: var(--font-heading); font-size: 5rem; font-weight: 700; color: var(--color-danger); line-height: 1;">
+        500
+    </div>
+    <h2 style="margin: 1rem 0; font-size: 2.25rem;">Server Encountered an Issue</h2>
+    <p style="max-width: 520px; margin: 0 auto 2.5rem; color: var(--color-text-muted);">
+        We encountered an unexpected error while processing your request. Rest assured, your data is safe and our systems have logged the occurrence.
+    </p>
+    <div style="display:flex; justify-content:center; gap:1rem;">
+        <a href="{{ url_for('index') }}" class="btn btn-primary">
+            <i data-lucide="home"></i>
+            <span>Return to Homepage</span>
+        </a>
+        <a href="{{ url_for('my_events') }}" class="btn btn-outline">
+            <i data-lucide="calendar"></i>
+            <span>View My Events</span>
+        </a>
+    </div>
+</div>
+{% endblock %}
