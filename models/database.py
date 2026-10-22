@@ -1,14 +1,55 @@
 import sqlite3
 import os
+import shutil
+import logging
 from flask import g, current_app
-from config import Config
+from config import Config, BASE_DIR
+
+logger = logging.getLogger(__name__)
+
+def ensure_writable_db_path(target_path):
+    """
+    Ensure the target database path is writable.
+    If the target directory is read-only (such as /var/task on Vercel), fallback to /tmp/celebration.db.
+    Also, if the DB file doesn't exist at the writable target but a seed DB exists in the project,
+    copy it over so initial state/demo users are immediately available.
+    """
+    resolved_path = target_path or Config.DATABASE_PATH
+    
+    # Check if target directory is writable
+    try:
+        abs_path = os.path.abspath(resolved_path)
+        target_dir = os.path.dirname(abs_path)
+        os.makedirs(target_dir, exist_ok=True)
+        # Test write permission in directory
+        test_file = os.path.join(target_dir, ".test_write_perm")
+        with open(test_file, "w") as f:
+            f.write("1")
+        if os.path.exists(test_file):
+            os.remove(test_file)
+    except (OSError, IOError, PermissionError):
+        # Target directory is read-only (e.g. AWS Lambda / Vercel Serverless /var/task)
+        resolved_path = "/tmp/celebration.db"
+        abs_path = os.path.abspath(resolved_path)
+        os.makedirs(os.path.dirname(abs_path), exist_ok=True)
+
+    # If database file does not exist at target, copy seed db if present
+    if not os.path.exists(abs_path):
+        seed_db = BASE_DIR / "celebration.db"
+        if seed_db.exists() and str(seed_db.resolve()) != abs_path:
+            try:
+                shutil.copyfile(str(seed_db), abs_path)
+                logger.info(f"Initialized database from seed at: {abs_path}")
+            except Exception as e:
+                logger.warning(f"Could not copy seed DB to {abs_path}: {e}")
+
+    return resolved_path
 
 def get_db():
     """Retrieve or create the database connection for the current Flask request context."""
     if "db" not in g:
-        db_path = current_app.config.get("DATABASE_PATH", Config.DATABASE_PATH) if current_app else Config.DATABASE_PATH
-        # Ensure parent directory exists
-        os.makedirs(os.path.dirname(os.path.abspath(db_path)), exist_ok=True)
+        raw_path = current_app.config.get("DATABASE_PATH", Config.DATABASE_PATH) if current_app else Config.DATABASE_PATH
+        db_path = ensure_writable_db_path(raw_path)
         g.db = sqlite3.connect(db_path)
         g.db.row_factory = sqlite3.Row
         # Enforce foreign key constraints
@@ -23,8 +64,7 @@ def close_db(e=None):
 
 def get_standalone_db(db_path=None):
     """Return an independent database connection for scripts or background tests."""
-    path = db_path or Config.DATABASE_PATH
-    os.makedirs(os.path.dirname(os.path.abspath(path)), exist_ok=True)
+    path = ensure_writable_db_path(db_path)
     conn = sqlite3.connect(path)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA foreign_keys = ON;")
@@ -32,7 +72,8 @@ def get_standalone_db(db_path=None):
 
 def init_db(app=None):
     """Initialize all database tables and indexes."""
-    db_path = app.config.get("DATABASE_PATH", Config.DATABASE_PATH) if app else Config.DATABASE_PATH
+    raw_path = app.config.get("DATABASE_PATH", Config.DATABASE_PATH) if app else Config.DATABASE_PATH
+    db_path = ensure_writable_db_path(raw_path)
     conn = get_standalone_db(db_path)
     cursor = conn.cursor()
 

@@ -8,7 +8,7 @@ from flask import (
     session, jsonify, flash, g
 )
 
-from config import Config
+from config import Config, BASE_DIR
 from models import init_db, close_db, UserModel, EventModel
 from services import generate_event_plan, answer_event_chat
 
@@ -17,7 +17,12 @@ logger = logging.getLogger(__name__)
 
 def create_app(test_config=None):
     """Application factory for CelebrationAI."""
-    app = Flask(__name__, instance_relative_config=True)
+    app = Flask(
+        __name__,
+        instance_relative_config=True,
+        template_folder=str(BASE_DIR / "templates"),
+        static_folder=str(BASE_DIR / "static")
+    )
     app.config.from_object(Config)
 
     if test_config:
@@ -26,16 +31,22 @@ def create_app(test_config=None):
     # Register teardown
     app.teardown_appcontext(close_db)
 
-    # Initialize database on startup
+    # Initialize database on startup safely
     with app.app_context():
-        init_db(app)
+        try:
+            init_db(app)
+        except Exception as e:
+            logger.error(f"Startup DB initialization notice: {e}")
 
     # Global template context helpers
     @app.context_processor
     def inject_globals():
         current_user = None
         if "user_id" in session:
-            current_user = UserModel.get_by_id(session["user_id"])
+            try:
+                current_user = UserModel.get_by_id(session["user_id"])
+            except Exception:
+                current_user = None
         
         has_api_key = bool(Config.GEMINI_API_KEY and Config.GEMINI_API_KEY != "your_gemini_api_key_here")
 
