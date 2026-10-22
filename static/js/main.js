@@ -23,20 +23,15 @@ document.addEventListener("DOMContentLoaded", () => {
     const mobileBtn = document.querySelector(".mobile-menu-btn");
     const navLinks = document.querySelector(".nav-links");
     if (mobileBtn && navLinks) {
-        mobileBtn.addEventListener("click", () => {
-            if (navLinks.style.display === "flex") {
-                navLinks.style.display = "none";
-            } else {
-                navLinks.style.display = "flex";
-                navLinks.style.flexDirection = "column";
-                navLinks.style.position = "absolute";
-                navLinks.style.top = "68px";
-                navLinks.style.left = "0";
-                navLinks.style.right = "0";
-                navLinks.style.background = "#FFFFFF";
-                navLinks.style.padding = "1.5rem";
-                navLinks.style.borderBottom = "1px solid var(--color-border)";
-                navLinks.style.boxShadow = "var(--shadow-md)";
+        mobileBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            navLinks.classList.toggle("mobile-open");
+        });
+
+        // Close menu on click outside
+        document.addEventListener("click", (e) => {
+            if (!navLinks.contains(e.target) && !mobileBtn.contains(e.target)) {
+                navLinks.classList.remove("mobile-open");
             }
         });
     }
