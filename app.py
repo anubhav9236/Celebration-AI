@@ -661,6 +661,24 @@ def create_app(test_config=None):
 
         def __call__(self, environ, start_response):
             path_info = environ.get("PATH_INFO", "")
+            query_string = environ.get("QUERY_STRING", "")
+
+            # 1. First priority: Check if __vercel_path was passed via vercel.json rewrite
+            from urllib.parse import parse_qs, urlencode
+            if "__vercel_path" in query_string:
+                params = parse_qs(query_string, keep_blank_values=True)
+                if "__vercel_path" in params:
+                    raw_target = params.pop("__vercel_path")[0].strip()
+                    if raw_target:
+                        if not raw_target.startswith("/"):
+                            raw_target = "/" + raw_target
+                        environ["PATH_INFO"] = raw_target
+                    else:
+                        environ["PATH_INFO"] = "/"
+                    environ["QUERY_STRING"] = urlencode(params, doseq=True)
+                    return self.wsgi_app(environ, start_response)
+
+            # 2. Second priority: Check Vercel proxy headers
             orig_path = (
                 environ.get("HTTP_X_FORWARDED_URI")
                 or environ.get("HTTP_X_MATCHED_PATH")
